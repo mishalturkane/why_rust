@@ -1,451 +1,865 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Rust Backend Engineer — Self Evaluation</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-<style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #111118;
-    --card: #16161f;
-    --border: #2a2a3a;
-    --rust: #ce4a26;
-    --rust2: #f05e32;
-    --rust-glow: rgba(206,74,38,0.15);
-    --amber: #f59e0b;
-    --green: #22c55e;
-    --blue: #60a5fa;
-    --muted: #4a4a6a;
-    --text: #e0e0f0;
-    --text2: #9090b0;
-    --mono: 'JetBrains Mono', monospace;
-    --display: 'Bebas Neue', sans-serif;
-    --body: 'DM Sans', sans-serif;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{
-    background:var(--bg);
-    color:var(--text);
-    font-family:var(--body);
-    min-height:100vh;
-    overflow-x:hidden;
-  }
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rust Backend Engineer — Self Evaluation</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* Background grid */
-  body::before{
-    content:'';
-    position:fixed;
-    inset:0;
-    background-image:
-      linear-gradient(rgba(206,74,38,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(206,74,38,0.03) 1px, transparent 1px);
-    background-size:40px 40px;
-    pointer-events:none;
-    z-index:0;
-  }
+    :root {
+      --black:    #0a0a0a;
+      --gray-950: #111111;
+      --gray-900: #1a1a1a;
+      --gray-800: #242424;
+      --gray-750: #2a2a2a;
+      --gray-700: #333333;
+      --gray-600: #4a4a4a;
+      --gray-400: #888888;
+      --gray-300: #aaaaaa;
+      --gray-200: #cccccc;
+      --gray-100: #e8e8e8;
+      --white:    #f5f5f5;
+      --accent:   #ff4500;
+      --accent2:  #ff6a00;
+      --green:    #22c55e;
+      --amber:    #f59e0b;
+      --blue:     #60a5fa;
+      --mono:     'JetBrains Mono', monospace;
+      --body:     'Inter', sans-serif;
+    }
 
-  .wrapper{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:40px 24px 80px;}
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--black);
+      color: var(--gray-200);
+      font-family: var(--body);
+      font-size: 15px;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
 
-  /* Header */
-  header{text-align:center;padding:60px 0 50px;border-bottom:1px solid var(--border);}
-  .tag{font-family:var(--mono);font-size:11px;color:var(--rust2);letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;display:block;}
-  h1{font-family:var(--display);font-size:clamp(52px,8vw,88px);letter-spacing:2px;line-height:1;background:linear-gradient(135deg,var(--rust2),#ff9a6c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-  h1 span{display:block;font-size:0.55em;color:#e0e0f0;-webkit-text-fill-color:#e0e0f0;}
-  .subtitle{color:var(--text2);font-size:14px;margin-top:16px;font-family:var(--mono);}
+    /* ── STICKY TOPBAR ── */
+    .topbar {
+      background: var(--gray-950);
+      border-bottom: 1px solid var(--gray-700);
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gray-400);
+    }
+    .topbar-dot { width: 8px; height: 8px; background: var(--accent); flex-shrink: 0; }
+    .topbar-path span { color: var(--white); }
+    .topbar-right {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gray-600);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .score-badge {
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      padding: 3px 10px;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--accent);
+      font-weight: 700;
+    }
 
-  /* Score Panel */
-  .score-panel{
-    background:var(--card);
-    border:1px solid var(--rust);
-    border-radius:16px;
-    padding:32px;
-    margin:40px 0;
-    display:flex;
-    align-items:center;
-    gap:40px;
-    box-shadow:0 0 60px var(--rust-glow);
-    flex-wrap:wrap;
-  }
-  .score-circle{
-    position:relative;
-    width:140px;height:140px;
-    flex-shrink:0;
-  }
-  .score-circle svg{transform:rotate(-90deg);}
-  .score-circle .track{fill:none;stroke:var(--border);stroke-width:8;}
-  .score-circle .fill{
-    fill:none;stroke:var(--rust2);stroke-width:8;
-    stroke-linecap:round;
-    stroke-dasharray:345;
-    stroke-dashoffset:345;
-    transition:stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1);
-  }
-  .score-label{
-    position:absolute;inset:0;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-  }
-  .score-num{font-family:var(--display);font-size:38px;color:var(--rust2);line-height:1;}
-  .score-pct{font-family:var(--mono);font-size:10px;color:var(--muted);}
-  .score-meta{flex:1;}
-  .score-meta h2{font-family:var(--display);font-size:28px;letter-spacing:1px;margin-bottom:8px;}
-  .score-meta p{color:var(--text2);font-size:13px;line-height:1.6;}
-  .score-breakdown{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap;}
-  .score-pill{
-    font-family:var(--mono);font-size:11px;
-    background:var(--surface);border:1px solid var(--border);
-    padding:4px 10px;border-radius:20px;color:var(--text2);
-  }
-  .score-pill span{color:var(--rust2);}
+    /* ── DAY NAVIGATION ── */
+    .day-nav {
+      background: var(--gray-900);
+      border-bottom: 1px solid var(--gray-800);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .day-nav::-webkit-scrollbar { display: none; }
+    .day-nav-inner {
+      display: flex;
+      min-width: max-content;
+    }
+    .day-nav-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--gray-600);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0 20px;
+      border-right: 1px solid var(--gray-800);
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .day-link {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--gray-600);
+      text-decoration: none;
+      padding: 10px 16px;
+      border-right: 1px solid var(--gray-800);
+      white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: background 0.12s, color 0.12s;
+      position: relative;
+    }
+    .day-link:hover { background: var(--gray-800); color: var(--white); }
+    .day-link.active { color: var(--white); background: var(--gray-800); }
+    .day-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+    }
+    .day-link.done { color: var(--green); }
+    .day-link.done::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--green);
+    }
+    .day-link .day-num { color: inherit; letter-spacing: 1px; }
+    .day-link .day-topic { font-size: 9px; color: var(--gray-600); font-weight: 400; }
+    .day-link.active .day-topic, .day-link:hover .day-topic { color: var(--gray-400); }
+    .day-link.done .day-topic { color: var(--green); opacity: 0.7; }
 
-  /* Section */
-  section{margin-top:48px;}
-  .section-header{
-    display:flex;align-items:center;gap:12px;
-    margin-bottom:24px;
-    padding-bottom:12px;
-    border-bottom:1px solid var(--border);
-  }
-  .section-icon{
-    width:36px;height:36px;border-radius:8px;
-    background:var(--rust-glow);border:1px solid var(--rust);
-    display:flex;align-items:center;justify-content:center;
-    font-size:16px;flex-shrink:0;
-  }
-  .section-header h2{font-family:var(--display);font-size:22px;letter-spacing:1px;}
-  .section-header .weight{font-family:var(--mono);font-size:11px;color:var(--rust2);margin-left:auto;}
+    /* ── HERO ── */
+    .hero {
+      background: var(--gray-950);
+      border-bottom: 1px solid var(--gray-800);
+      padding: 56px 32px 44px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: '🦀';
+      position: absolute;
+      right: 32px;
+      top: 40px;
+      font-size: 100px;
+      opacity: 0.06;
+      pointer-events: none;
+      user-select: none;
+    }
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+    .hero h1 {
+      font-family: var(--mono);
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.1;
+      letter-spacing: -1px;
+      margin-bottom: 10px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero-sub {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--gray-400);
+      margin-bottom: 28px;
+    }
+    .hero-stats {
+      display: flex;
+      gap: 0;
+      flex-wrap: wrap;
+      border: 1px solid var(--gray-800);
+      width: fit-content;
+    }
+    .hero-stat {
+      padding: 12px 24px;
+      border-right: 1px solid var(--gray-800);
+      font-family: var(--mono);
+    }
+    .hero-stat:last-child { border-right: none; }
+    .hero-stat .val {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--white);
+      display: block;
+      line-height: 1;
+    }
+    .hero-stat .lbl {
+      font-size: 10px;
+      color: var(--gray-600);
+      letter-spacing: 1px;
+      margin-top: 4px;
+      display: block;
+    }
 
-  /* Topic Grid */
-  .topic-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  @media(max-width:600px){.topic-grid{grid-template-columns:1fr;}}
+    /* ── SCORE PANEL ── */
+    .score-panel {
+      background: var(--gray-900);
+      border: 1px solid var(--gray-800);
+      border-left: 3px solid var(--accent);
+      padding: 28px 32px;
+      margin: 32px 32px 0;
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      flex-wrap: wrap;
+    }
+    .score-ring-wrap { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
+    .score-ring-wrap svg { transform: rotate(-90deg); }
+    .score-track { fill: none; stroke: var(--gray-800); stroke-width: 7; }
+    .score-fill {
+      fill: none; stroke: var(--accent); stroke-width: 7;
+      stroke-linecap: square;
+      stroke-dasharray: 314;
+      stroke-dashoffset: 314;
+      transition: stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);
+    }
+    .score-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .score-num-big {
+      font-family: var(--mono);
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1;
+    }
+    .score-denom { font-family: var(--mono); font-size: 10px; color: var(--gray-600); }
 
-  .topic-card{
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:16px;
-    cursor:pointer;
-    transition:border-color .2s, box-shadow .2s, transform .15s;
-    position:relative;
-    overflow:hidden;
-  }
-  .topic-card::before{
-    content:'';
-    position:absolute;left:0;top:0;bottom:0;width:3px;
-    background:var(--muted);
-    transition:background .2s;
-  }
-  .topic-card:hover{border-color:var(--rust);transform:translateY(-1px);box-shadow:0 4px 20px var(--rust-glow);}
-  .topic-card:hover::before{background:var(--rust2);}
+    .score-right { flex: 1; }
+    .score-title {
+      font-family: var(--mono);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+    .score-desc { font-size: 13px; color: var(--gray-400); margin-bottom: 16px; }
+    .score-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .score-pill {
+      font-family: var(--mono);
+      font-size: 10px;
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      padding: 4px 10px;
+      color: var(--gray-400);
+    }
+    .score-pill span { color: var(--accent); }
 
-  .topic-card.checked{border-color:var(--green);background:#16201a;}
-  .topic-card.checked::before{background:var(--green);}
-  .topic-card.partial{border-color:var(--amber);background:#1e1a12;}
-  .topic-card.partial::before{background:var(--amber);}
+    /* ── MAIN LAYOUT ── */
+    .main { padding: 0 32px 80px; }
 
-  .topic-top{display:flex;align-items:flex-start;gap:10px;}
-  .check-btn{
-    width:20px;height:20px;border-radius:4px;border:1.5px solid var(--muted);
-    background:transparent;cursor:pointer;flex-shrink:0;margin-top:2px;
-    display:flex;align-items:center;justify-content:center;
-    transition:all .15s;font-size:12px;color:transparent;
-  }
-  .topic-card.checked .check-btn{background:var(--green);border-color:var(--green);color:#fff;}
-  .topic-card.partial .check-btn{background:var(--amber);border-color:var(--amber);color:#fff;}
+    /* ── SECTION ── */
+    .sec { border-bottom: 1px solid var(--gray-800); padding: 40px 0; }
+    .sec:last-child { border-bottom: none; }
 
-  .topic-info{flex:1;}
-  .topic-name{font-size:13px;font-weight:500;margin-bottom:4px;}
-  .topic-sub{font-family:var(--mono);font-size:10px;color:var(--text2);line-height:1.5;}
-  .topic-level{
-    font-family:var(--mono);font-size:9px;
-    padding:2px 6px;border-radius:10px;
-    margin-top:6px;display:inline-block;
-  }
-  .level-core{background:rgba(206,74,38,.15);color:var(--rust2);}
-  .level-important{background:rgba(245,158,11,.12);color:var(--amber);}
-  .level-bonus{background:rgba(96,165,250,.1);color:var(--blue);}
+    .sec-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--gray-800);
+    }
+    .sec-icon {
+      width: 32px; height: 32px;
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .sec-title {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .sec-weight {
+      margin-left: auto;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--accent);
+      border: 1px solid var(--gray-700);
+      padding: 2px 8px;
+      letter-spacing: 1px;
+    }
 
-  /* Toggle row */
-  .toggle-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
-  .toggle-btn{
-    font-family:var(--mono);font-size:10px;
-    padding:4px 12px;border-radius:20px;border:1px solid var(--border);
-    background:transparent;color:var(--text2);cursor:pointer;
-    transition:all .15s;
-  }
-  .toggle-btn:hover{border-color:var(--rust2);color:var(--rust2);}
-  .toggle-btn.active{background:var(--rust);border-color:var(--rust);color:#fff;}
+    /* ── FILTER TABS ── */
+    .filter-row {
+      display: flex;
+      gap: 0;
+      margin-bottom: 16px;
+      border: 1px solid var(--gray-800);
+      width: fit-content;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 7px 14px;
+      background: transparent;
+      color: var(--gray-600);
+      border: none;
+      border-right: 1px solid var(--gray-800);
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+    }
+    .filter-btn:last-child { border-right: none; }
+    .filter-btn:hover { background: var(--gray-800); color: var(--white); }
+    .filter-btn.active { background: var(--accent); color: #fff; }
 
-  /* Projects */
-  .project-list{display:flex;flex-direction:column;gap:12px;}
-  .project-card{
-    background:var(--card);border:1px solid var(--border);
-    border-radius:12px;padding:20px;
-    display:flex;align-items:flex-start;gap:16px;
-    cursor:pointer;transition:border-color .2s, box-shadow .2s;
-  }
-  .project-card:hover{border-color:var(--rust);}
-  .project-card.done{border-color:var(--green);background:#16201a;}
-  .project-num{
-    font-family:var(--display);font-size:32px;
-    color:var(--border);line-height:1;flex-shrink:0;
-    transition:color .2s;
-  }
-  .project-card:hover .project-num{color:var(--rust2);}
-  .project-card.done .project-num{color:var(--green);}
-  .project-body{flex:1;}
-  .project-title{font-size:14px;font-weight:500;margin-bottom:4px;}
-  .project-desc{font-size:12px;color:var(--text2);line-height:1.6;}
-  .project-tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
-  .ptag{font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:10px;border:1px solid var(--border);color:var(--muted);}
+    /* ── TOPIC GRID ── */
+    .topic-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--gray-800);
+      border: 1px solid var(--gray-800);
+    }
+    @media(max-width: 640px) { .topic-grid { grid-template-columns: 1fr; } }
 
-  /* OSS */
-  .oss-list{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  @media(max-width:600px){.oss-list{grid-template-columns:1fr;}}
-  .oss-card{
-    background:var(--card);border:1px solid var(--border);
-    border-radius:12px;padding:16px;cursor:pointer;
-    transition:border-color .2s;
-  }
-  .oss-card:hover{border-color:var(--blue);}
-  .oss-card.done{border-color:var(--green);background:#16201a;}
-  .oss-card h4{font-size:13px;font-weight:500;margin-bottom:4px;}
-  .oss-card p{font-size:11px;color:var(--text2);line-height:1.5;}
+    .topic-card {
+      background: var(--gray-950);
+      padding: 16px;
+      cursor: pointer;
+      transition: background 0.12s;
+      position: relative;
+      border-left: 2px solid transparent;
+    }
+    .topic-card:hover { background: var(--gray-900); border-left-color: var(--gray-600); }
+    .topic-card.checked { background: #0f1a10; border-left-color: var(--green); }
+    .topic-card.partial { background: #1a1500; border-left-color: var(--amber); }
 
-  /* Progress bar */
-  .progress-bar{
-    height:6px;background:var(--border);border-radius:3px;
-    margin:8px 0 4px;overflow:hidden;
-  }
-  .progress-fill{height:100%;background:linear-gradient(90deg,var(--rust),var(--rust2));border-radius:3px;transition:width 1s ease;}
+    .topic-top { display: flex; align-items: flex-start; gap: 10px; }
+    .check-btn {
+      width: 18px; height: 18px;
+      border: 1.5px solid var(--gray-700);
+      background: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      color: transparent;
+      font-family: var(--mono);
+    }
+    .topic-card.checked .check-btn { background: var(--green); border-color: var(--green); color: #fff; }
+    .topic-card.partial .check-btn { background: var(--amber); border-color: var(--amber); color: #fff; }
 
-  /* Summary table */
-  .summary-table{width:100%;border-collapse:collapse;margin-top:8px;}
-  .summary-table th,.summary-table td{
-    padding:10px 14px;text-align:left;
-    border-bottom:1px solid var(--border);
-    font-size:13px;
-  }
-  .summary-table th{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
-  .summary-table td:last-child{font-family:var(--mono);font-size:12px;color:var(--rust2);text-align:right;}
+    .topic-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 3px;
+    }
+    .topic-sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--gray-400);
+      line-height: 1.5;
+    }
+    .topic-level {
+      font-family: var(--mono);
+      font-size: 9px;
+      padding: 2px 7px;
+      margin-top: 6px;
+      display: inline-block;
+      letter-spacing: 0.5px;
+    }
+    .level-core     { background: rgba(255,69,0,.12); color: var(--accent); border: 1px solid rgba(255,69,0,.25); }
+    .level-important{ background: rgba(245,158,11,.1); color: var(--amber); border: 1px solid rgba(245,158,11,.2); }
+    .level-bonus    { background: rgba(96,165,250,.08); color: var(--blue); border: 1px solid rgba(96,165,250,.15); }
 
-  /* Total score */
-  .total-section{
-    margin-top:48px;background:var(--card);border:1px solid var(--rust);
-    border-radius:16px;padding:32px;text-align:center;
-    box-shadow:0 0 80px var(--rust-glow);
-  }
-  .total-section h2{font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--text2);margin-bottom:8px;}
-  .big-score{font-family:var(--display);font-size:80px;line-height:1;background:linear-gradient(135deg,var(--rust2),#ff9a6c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-  .score-verdict{font-family:var(--mono);font-size:12px;margin-top:8px;color:var(--text2);}
+    /* day link on topic card */
+    .topic-day-link {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--gray-600);
+      text-decoration: none;
+      position: absolute;
+      bottom: 10px; right: 12px;
+      border: 1px solid var(--gray-800);
+      padding: 2px 6px;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .topic-day-link:hover { color: var(--accent); border-color: var(--accent); }
 
-  /* Animate in */
-  @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-  .topic-card,.project-card,.oss-card{animation:fadeUp .4s ease both;}
+    /* ── PROJECT LIST ── */
+    .project-list { display: flex; flex-direction: column; gap: 1px; background: var(--gray-800); border: 1px solid var(--gray-800); }
+    .project-card {
+      background: var(--gray-950);
+      padding: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      transition: background 0.12s;
+      border-left: 2px solid transparent;
+    }
+    .project-card:hover { background: var(--gray-900); border-left-color: var(--gray-600); }
+    .project-card.done  { background: #0f1a10; border-left-color: var(--green); }
+    .project-num {
+      font-family: var(--mono);
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--gray-800);
+      line-height: 1;
+      flex-shrink: 0;
+      transition: color 0.12s;
+      width: 36px;
+    }
+    .project-card:hover .project-num { color: var(--accent); }
+    .project-card.done  .project-num { color: var(--green); }
+    .project-body { flex: 1; }
+    .project-title { font-size: 13px; font-weight: 600; color: var(--white); margin-bottom: 4px; }
+    .project-pts { font-family: var(--mono); font-size: 10px; color: var(--accent); margin-left: 8px; }
+    .project-desc { font-size: 12px; color: var(--gray-400); line-height: 1.6; }
+    .project-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    .ptag { font-family: var(--mono); font-size: 9px; padding: 2px 7px; border: 1px solid var(--gray-700); color: var(--gray-500); }
 
-  /* Reset btn */
-  .reset-btn{
-    font-family:var(--mono);font-size:10px;padding:6px 14px;
-    border-radius:20px;border:1px solid var(--border);
-    background:transparent;color:var(--muted);cursor:pointer;
-    transition:all .15s;margin-left:auto;display:block;
-  }
-  .reset-btn:hover{border-color:var(--rust2);color:var(--rust2);}
-</style>
+    /* ── OSS GRID ── */
+    .oss-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--gray-800); border: 1px solid var(--gray-800); }
+    @media(max-width: 640px) { .oss-grid { grid-template-columns: 1fr; } }
+    .oss-card {
+      background: var(--gray-950);
+      padding: 18px;
+      cursor: pointer;
+      transition: background 0.12s;
+      border-left: 2px solid transparent;
+    }
+    .oss-card:hover { background: var(--gray-900); border-left-color: var(--blue); }
+    .oss-card.done  { background: #0f1a10; border-left-color: var(--green); }
+    .oss-card h4 { font-size: 12px; font-weight: 600; color: var(--white); margin-bottom: 4px; }
+    .oss-pts { font-family: var(--mono); font-size: 10px; color: var(--accent); margin-left: 6px; }
+    .oss-card p { font-size: 11px; color: var(--gray-400); line-height: 1.55; }
+
+    /* ── SUMMARY TABLE ── */
+    .sum-table { width: 100%; border-collapse: collapse; border: 1px solid var(--gray-800); }
+    .sum-table th, .sum-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--gray-800); font-size: 12px; }
+    .sum-table th { font-family: var(--mono); font-size: 10px; color: var(--gray-600); letter-spacing: 1.5px; text-transform: uppercase; background: var(--gray-900); }
+    .sum-table td:last-child { font-family: var(--mono); color: var(--accent); text-align: right; font-weight: 700; }
+    .sum-total { background: var(--gray-900); font-weight: 700; }
+
+    /* ── TOTAL SECTION ── */
+    .total-block {
+      border: 1px solid var(--gray-800);
+      border-left: 3px solid var(--accent);
+      padding: 36px 32px;
+      margin-top: 40px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .total-num {
+      font-family: var(--mono);
+      font-size: 72px;
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .total-num span { color: var(--accent); font-size: 36px; }
+    .total-right { flex: 1; }
+    .total-right h3 {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+    .total-right p { font-size: 13px; color: var(--gray-400); margin-bottom: 12px; }
+    .progress-bar { height: 4px; background: var(--gray-800); }
+    .progress-fill { height: 100%; background: var(--accent); transition: width 1.2s ease; width: 0%; }
+
+    .reset-btn {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 8px 16px;
+      border: 1px solid var(--gray-700);
+      background: transparent;
+      color: var(--gray-600);
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: all 0.12s;
+      margin-top: 8px;
+      display: inline-block;
+    }
+    .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--gray-950);
+      border-top: 1px solid var(--gray-800);
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-left {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gray-600);
+      line-height: 1.8;
+    }
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .footer-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gray-400);
+      text-decoration: none;
+      border: 1px solid var(--gray-800);
+      padding: 6px 12px;
+      transition: border-color 0.12s, color 0.12s;
+    }
+    .footer-link:hover { border-color: var(--accent); color: var(--white); }
+    .footer-link .ico { font-size: 13px; }
+    .footer-copy {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--gray-700);
+      margin-top: 12px;
+    }
+  </style>
 </head>
 <body>
-<div class="wrapper">
 
-  <!-- Header -->
-  <header>
-    <span class="tag">🦀 Self Evaluation Tool</span>
-    <h1>RUST BACKEND<span>Engineer Checklist</span></h1>
-    <p class="subtitle">// mid-level · click topics to mark · score auto-calculates</p>
-  </header>
-
-  <!-- Live Score -->
-  <div class="score-panel">
-    <div class="score-circle">
-      <svg width="140" height="140" viewBox="0 0 140 140">
-        <circle class="track" cx="70" cy="70" r="55"/>
-        <circle class="fill" id="scoreArc" cx="70" cy="70" r="55"/>
-      </svg>
-      <div class="score-label">
-        <span class="score-num" id="scoreNum">0</span>
-        <span class="score-pct">/ 100</span>
-      </div>
-    </div>
-    <div class="score-meta">
-      <h2 id="verdictTitle">Start Evaluating</h2>
-      <p id="verdictDesc">Click topics below to mark what you know. Score auto-updates.</p>
-      <div class="score-breakdown">
-        <div class="score-pill">Topics: <span id="topicScore">0</span>/60</div>
-        <div class="score-pill">Projects: <span id="projScore">0</span>/25</div>
-        <div class="score-pill">OSS: <span id="ossScore">0</span>/15</div>
-      </div>
-    </div>
+<!-- ── TOPBAR ── -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-dot"></div>
+    <span class="topbar-path">rust-job-prep / <span>self-eval</span> / <span>index.html</span></span>
   </div>
-
-  <!-- ─────────────── SECTION 1: CORE RUST ─────────────── -->
-  <section>
-    <div class="section-header">
-      <div class="section-icon">⚙️</div>
-      <h2>CORE RUST KNOWLEDGE</h2>
-      <span class="weight">30 pts</span>
-    </div>
-    <div class="toggle-row">
-      <button class="toggle-btn active" onclick="filterTopics(this,'core','all')">All</button>
-      <button class="toggle-btn" onclick="filterTopics(this,'core','core')">🔴 Must Know</button>
-      <button class="toggle-btn" onclick="filterTopics(this,'core','important')">🟡 Important</button>
-      <button class="toggle-btn" onclick="filterTopics(this,'core','bonus')">🔵 Bonus</button>
-    </div>
-    <div class="topic-grid" id="coreGrid">
-      <!-- Items injected by JS -->
-    </div>
-  </section>
-
-  <!-- ─────────────── SECTION 2: BACKEND ─────────────── -->
-  <section>
-    <div class="section-header">
-      <div class="section-icon">🌐</div>
-      <h2>BACKEND & SYSTEMS</h2>
-      <span class="weight">30 pts</span>
-    </div>
-    <div class="topic-grid" id="backendGrid"></div>
-  </section>
-
-  <!-- ─────────────── SECTION 3: PROJECTS ─────────────── -->
-  <section>
-    <div class="section-header">
-      <div class="section-icon">🛠️</div>
-      <h2>PROJECT PORTFOLIO</h2>
-      <span class="weight">25 pts</span>
-    </div>
-    <div class="project-list" id="projectList"></div>
-  </section>
-
-  <!-- ─────────────── SECTION 4: OSS ─────────────── -->
-  <section>
-    <div class="section-header">
-      <div class="section-icon">🌍</div>
-      <h2>OPEN SOURCE CONTRIBUTIONS</h2>
-      <span class="weight">15 pts</span>
-    </div>
-    <div class="oss-list" id="ossList"></div>
-  </section>
-
-  <!-- ─────────────── SCORE SUMMARY ─────────────── -->
-  <section>
-    <div class="section-header">
-      <div class="section-icon">📊</div>
-      <h2>SCORE BREAKDOWN</h2>
-    </div>
-    <table class="summary-table">
-      <thead><tr><th>Category</th><th>Checked</th><th>Max</th><th>Score</th></tr></thead>
-      <tbody id="summaryBody"></tbody>
-    </table>
-  </section>
-
-  <!-- Total -->
-  <div class="total-section">
-    <h2>YOUR TOTAL SCORE</h2>
-    <div class="big-score" id="bigScore">0</div>
-    <div class="progress-bar"><div class="progress-fill" id="totalBar" style="width:0%"></div></div>
-    <p class="score-verdict" id="totalVerdict">// Mark topics above to see your score</p>
+  <div class="topbar-right">
+    <span>PHASE 01 · 15 DAYS</span>
+    <span class="score-badge" id="topbarScore">0 / 100</span>
   </div>
-
-  <button class="reset-btn" onclick="resetAll()" style="margin-top:24px;">↺ Reset All</button>
-
 </div>
 
-<script>
-// ─────────── DATA ───────────
+<!-- ── DAY NAVIGATION ── -->
+<nav class="day-nav" aria-label="Day Navigation">
+  <div class="day-nav-inner">
+    <span class="day-nav-label">// PHASE 01</span>
+    <a href="index.html" class="day-link active">
+      <span class="day-num">HOME</span>
+      <span class="day-topic">eval</span>
+    </a>
+    <a href="day01" class="day-link">
+      <span class="day-num">DAY 01</span>
+      <span class="day-topic">ownership</span>
+    </a>
+    <a href="day02.html" class="day-link">
+      <span class="day-num">DAY 02</span>
+      <span class="day-topic">lifetimes</span>
+    </a>
+    <a href="day03.html" class="day-link">
+      <span class="day-num">DAY 03</span>
+      <span class="day-topic">traits</span>
+    </a>
+    <a href="day04.html" class="day-link">
+      <span class="day-num">DAY 04</span>
+      <span class="day-topic">error handling</span>
+    </a>
+    <a href="day05.html" class="day-link">
+      <span class="day-num">DAY 05</span>
+      <span class="day-topic">enums</span>
+    </a>
+    <a href="day06.html" class="day-link">
+      <span class="day-num">DAY 06</span>
+      <span class="day-topic">iterators</span>
+    </a>
+    <a href="day07.html" class="day-link">
+      <span class="day-num">DAY 07</span>
+      <span class="day-topic">async/await</span>
+    </a>
+    <a href="day08.html" class="day-link">
+      <span class="day-num">DAY 08</span>
+      <span class="day-topic">concurrency</span>
+    </a>
+    <a href="day09.html" class="day-link">
+      <span class="day-num">DAY 09</span>
+      <span class="day-topic">smart ptrs</span>
+    </a>
+    <a href="day10.html" class="day-link">
+      <span class="day-num">DAY 10</span>
+      <span class="day-topic">macros</span>
+    </a>
+    <a href="day11.html" class="day-link">
+      <span class="day-num">DAY 11</span>
+      <span class="day-topic">unsafe rust</span>
+    </a>
+    <a href="day12.html" class="day-link">
+      <span class="day-num">DAY 12</span>
+      <span class="day-topic">proc macros</span>
+    </a>
+    <a href="day13.html" class="day-link">
+      <span class="day-num">DAY 13</span>
+      <span class="day-topic">ffi</span>
+    </a>
+    <a href="day14.html" class="day-link">
+      <span class="day-num">DAY 14</span>
+      <span class="day-topic">mem layout</span>
+    </a>
+    <a href="day15.html" class="day-link">
+      <span class="day-num">DAY 15</span>
+      <span class="day-topic">testing</span>
+    </a>
+  </div>
+</nav>
 
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-eyebrow">// rust job ready series — self evaluation dashboard</div>
+  <h1>RUST BACKEND<br/><span>ENGINEER</span> CHECKLIST</h1>
+  <div class="hero-sub">$ click topics to mark · score auto-calculates · mid-level target</div>
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="val">3</span><span class="lbl">PHASES</span></div>
+    <div class="hero-stat"><span class="val">15</span><span class="lbl">DAYS / PHASE 01</span></div>
+    <div class="hero-stat"><span class="val">30</span><span class="lbl">TOPICS TOTAL</span></div>
+    <div class="hero-stat"><span class="val">100</span><span class="lbl">MAX SCORE</span></div>
+  </div>
+</div>
+
+<!-- ── SCORE PANEL ── -->
+<div class="score-panel">
+  <div class="score-ring-wrap">
+    <svg width="120" height="120" viewBox="0 0 120 120">
+      <circle class="score-track" cx="60" cy="60" r="50"/>
+      <circle class="score-fill" id="scoreArc" cx="60" cy="60" r="50"/>
+    </svg>
+    <div class="score-center">
+      <span class="score-num-big" id="scoreNum">0</span>
+      <span class="score-denom">/ 100</span>
+    </div>
+  </div>
+  <div class="score-right">
+    <div class="score-title" id="verdictTitle">Start Evaluating</div>
+    <div class="score-desc" id="verdictDesc">Click topics below to mark what you know. Score auto-updates.</div>
+    <div class="score-pills">
+      <div class="score-pill">Topics <span id="topicScore">0</span>/60</div>
+      <div class="score-pill">Projects <span id="projScore">0</span>/25</div>
+      <div class="score-pill">OSS <span id="ossScore">0</span>/15</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ── CORE RUST ── -->
+  <div class="sec">
+    <div class="sec-header">
+      <div class="sec-icon">⚙️</div>
+      <span class="sec-title">Core Rust Knowledge</span>
+      <span class="sec-weight">30 PTS</span>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="filterTopics(this,'coreGrid','all')">ALL</button>
+      <button class="filter-btn" onclick="filterTopics(this,'coreGrid','core')">🔴 MUST KNOW</button>
+      <button class="filter-btn" onclick="filterTopics(this,'coreGrid','important')">🟡 IMPORTANT</button>
+      <button class="filter-btn" onclick="filterTopics(this,'coreGrid','bonus')">🔵 BONUS</button>
+    </div>
+    <div class="topic-grid" id="coreGrid"></div>
+  </div>
+
+  <!-- ── BACKEND ── -->
+  <div class="sec">
+    <div class="sec-header">
+      <div class="sec-icon">🌐</div>
+      <span class="sec-title">Backend & Systems</span>
+      <span class="sec-weight">30 PTS</span>
+    </div>
+    <div class="topic-grid" id="backendGrid"></div>
+  </div>
+
+  <!-- ── PROJECTS ── -->
+  <div class="sec">
+    <div class="sec-header">
+      <div class="sec-icon">🛠️</div>
+      <span class="sec-title">Project Portfolio</span>
+      <span class="sec-weight">25 PTS</span>
+    </div>
+    <div class="project-list" id="projectList"></div>
+  </div>
+
+  <!-- ── OSS ── -->
+  <div class="sec">
+    <div class="sec-header">
+      <div class="sec-icon">🌍</div>
+      <span class="sec-title">Open Source Contributions</span>
+      <span class="sec-weight">15 PTS</span>
+    </div>
+    <div class="oss-grid" id="ossList"></div>
+  </div>
+
+  <!-- ── SUMMARY TABLE ── -->
+  <div class="sec">
+    <div class="sec-header">
+      <div class="sec-icon">📊</div>
+      <span class="sec-title">Score Breakdown</span>
+    </div>
+    <table class="sum-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Raw</th>
+          <th>Max</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody id="summaryBody"></tbody>
+    </table>
+  </div>
+
+  <!-- ── TOTAL ── -->
+  <div class="total-block">
+    <div class="total-num" id="bigScore">0<span>/100</span></div>
+    <div class="total-right">
+      <h3 id="totalTitle">Your Total Score</h3>
+      <p id="totalVerdict">// Mark topics above to see your score</p>
+      <div class="progress-bar"><div class="progress-fill" id="totalBar"></div></div>
+      <button class="reset-btn" onclick="resetAll()">↺ RESET ALL</button>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-left">
+    <div>// rust-job-prep · phase 01 · 15 days · 15 topics</div>
+    <div>built by mishal · entry-level → mid-level rust journey</div>
+    <div class="footer-copy">© 2025 · open source · keep shipping 🦀</div>
+  </div>
+  <div class="footer-links">
+    <a class="footer-link" href="https://github.com/mishalturkane/why_rust" target="_blank" rel="noopener">
+      <span class="ico">⌥</span>
+      github.com/mishalturkane/why_rust
+    </a>
+    <a class="footer-link" href="https://x.com/mishaldotrwa" target="_blank" rel="noopener">
+      <span class="ico">✕</span>
+      x.com/mishaldotrwa
+    </a>
+  </div>
+</footer>
+
+<script>
+// ── DATA ──
 const coreTopics = [
-  {id:'c1', name:'Ownership & Borrowing', sub:'move, copy, clone, references', level:'core', pts:3},
-  {id:'c2', name:'Lifetimes', sub:"'a, 'static, lifetime elision rules", level:'core', pts:3},
-  {id:'c3', name:'Traits & Generics', sub:'impl Trait, dyn Trait, where clauses', level:'core', pts:2},
-  {id:'c4', name:'Error Handling', sub:'Result, Option, ?, thiserror, anyhow', level:'core', pts:2},
-  {id:'c5', name:'Enums & Pattern Matching', sub:'match, if let, destructuring', level:'core', pts:2},
-  {id:'c6', name:'Iterators & Closures', sub:'map, filter, collect, FnOnce/Fn/FnMut', level:'core', pts:2},
-  {id:'c7', name:'Async / Await', sub:'Future trait, tokio runtime, async fn', level:'core', pts:3},
-  {id:'c8', name:'Concurrency', sub:'Arc, Mutex, RwLock, channels (mpsc)', level:'core', pts:2},
-  {id:'c9', name:'Smart Pointers', sub:'Box, Rc, Arc, Cell, RefCell', level:'important', pts:2},
-  {id:'c10', name:'Macros (declarative)', sub:'macro_rules!, vec!, println!', level:'important', pts:1},
-  {id:'c11', name:'Unsafe Rust', sub:'raw pointers, unsafe blocks, when to use', level:'important', pts:2},
-  {id:'c12', name:'Proc Macros', sub:'derive, attribute, function-like macros', level:'bonus', pts:2},
-  {id:'c13', name:'FFI / C Interop', sub:'extern "C", bindgen, cbindgen', level:'bonus', pts:2},
-  {id:'c14', name:'Memory Layout', sub:'repr(C), alignment, stack vs heap', level:'important', pts:1},
-  {id:'c15', name:'Testing', sub:'unit tests, integration tests, benchmarks', level:'core', pts:1},
+  {id:'c1',  name:'Ownership & Borrowing',   sub:'move, copy, clone, references',           level:'core',      pts:3, day:'day01.html'},
+  {id:'c2',  name:'Lifetimes',               sub:"'a, 'static, lifetime elision rules",     level:'core',      pts:3, day:'day02.html'},
+  {id:'c3',  name:'Traits & Generics',       sub:'impl Trait, dyn Trait, where clauses',    level:'core',      pts:2, day:'day03.html'},
+  {id:'c4',  name:'Error Handling',          sub:'Result, Option, ?, thiserror, anyhow',    level:'core',      pts:2, day:'day04.html'},
+  {id:'c5',  name:'Enums & Pattern Matching',sub:'match, if let, destructuring',            level:'core',      pts:2, day:'day05.html'},
+  {id:'c6',  name:'Iterators & Closures',    sub:'map, filter, collect, FnOnce/Fn/FnMut',  level:'core',      pts:2, day:'day06.html'},
+  {id:'c7',  name:'Async / Await',           sub:'Future trait, tokio runtime, async fn',   level:'core',      pts:3, day:'day07.html'},
+  {id:'c8',  name:'Concurrency',             sub:'Arc, Mutex, RwLock, channels (mpsc)',     level:'core',      pts:2, day:'day08.html'},
+  {id:'c9',  name:'Smart Pointers',          sub:'Box, Rc, Arc, Cell, RefCell',             level:'important', pts:2, day:'day09.html'},
+  {id:'c10', name:'Macros (declarative)',    sub:'macro_rules!, vec!, println!',            level:'important', pts:1, day:'day10.html'},
+  {id:'c11', name:'Unsafe Rust',             sub:'raw pointers, unsafe blocks, when to use',level:'important', pts:2, day:'day11.html'},
+  {id:'c12', name:'Proc Macros',             sub:'derive, attribute, function-like macros', level:'bonus',     pts:2, day:'day12.html'},
+  {id:'c13', name:'FFI / C Interop',         sub:'extern "C", bindgen, cbindgen',           level:'bonus',     pts:2, day:'day13.html'},
+  {id:'c14', name:'Memory Layout',           sub:'repr(C), alignment, stack vs heap',       level:'important', pts:1, day:'day14.html'},
+  {id:'c15', name:'Testing',                 sub:'unit tests, integration tests, benchmarks',level:'core',     pts:1, day:'day15.html'},
 ];
 
 const backendTopics = [
-  {id:'b1', name:'tokio / async runtime', sub:'tasks, spawn, select!, JoinHandle', level:'core', pts:3},
-  {id:'b2', name:'axum or actix-web', sub:'routing, middleware, extractors, handlers', level:'core', pts:3},
-  {id:'b3', name:'REST API Design', sub:'CRUD, status codes, versioning, pagination', level:'core', pts:2},
-  {id:'b4', name:'serde (JSON)', sub:'Serialize, Deserialize, custom impls', level:'core', pts:2},
-  {id:'b5', name:'sqlx or diesel', sub:'async queries, migrations, connection pool', level:'core', pts:2},
-  {id:'b6', name:'PostgreSQL / SQL', sub:'joins, indexes, transactions, explain', level:'core', pts:2},
-  {id:'b7', name:'Redis (caching)', sub:'GET/SET, expiry, pub/sub basics', level:'important', pts:2},
-  {id:'b8', name:'Authentication', sub:'JWT, sessions, bcrypt, OAuth2 basics', level:'important', pts:2},
-  {id:'b9', name:'gRPC / tonic', sub:'proto files, service impl, streaming', level:'important', pts:2},
-  {id:'b10', name:'Docker', sub:'Dockerfile, multi-stage builds for Rust', level:'core', pts:2},
-  {id:'b11', name:'CI/CD basics', sub:'GitHub Actions, clippy, fmt, test pipeline', level:'important', pts:1},
-  {id:'b12', name:'Observability', sub:'tracing crate, spans, structured logging', level:'important', pts:2},
-  {id:'b13', name:'Message Queues', sub:'RabbitMQ or Kafka basics with Rust', level:'bonus', pts:2},
-  {id:'b14', name:'WebSockets', sub:'tokio-tungstenite, real-time handling', level:'bonus', pts:1},
-  {id:'b15', name:'System Design basics', sub:'caching, load balancing, DB scaling', level:'important', pts:2},
+  {id:'b1',  name:'tokio / async runtime',  sub:'tasks, spawn, select!, JoinHandle',        level:'core',      pts:3},
+  {id:'b2',  name:'axum or actix-web',      sub:'routing, middleware, extractors, handlers', level:'core',      pts:3},
+  {id:'b3',  name:'REST API Design',        sub:'CRUD, status codes, versioning, pagination',level:'core',      pts:2},
+  {id:'b4',  name:'serde (JSON)',           sub:'Serialize, Deserialize, custom impls',      level:'core',      pts:2},
+  {id:'b5',  name:'sqlx or diesel',         sub:'async queries, migrations, pool',           level:'core',      pts:2},
+  {id:'b6',  name:'PostgreSQL / SQL',       sub:'joins, indexes, transactions, explain',     level:'core',      pts:2},
+  {id:'b7',  name:'Redis (caching)',        sub:'GET/SET, expiry, pub/sub basics',           level:'important', pts:2},
+  {id:'b8',  name:'Authentication',         sub:'JWT, sessions, bcrypt, OAuth2 basics',     level:'important', pts:2},
+  {id:'b9',  name:'gRPC / tonic',           sub:'proto files, service impl, streaming',     level:'important', pts:2},
+  {id:'b10', name:'Docker',                 sub:'Dockerfile, multi-stage builds for Rust',  level:'core',      pts:2},
+  {id:'b11', name:'CI/CD basics',           sub:'GitHub Actions, clippy, fmt, test pipeline',level:'important',pts:1},
+  {id:'b12', name:'Observability',          sub:'tracing crate, spans, structured logging', level:'important', pts:2},
+  {id:'b13', name:'Message Queues',         sub:'RabbitMQ or Kafka basics with Rust',       level:'bonus',     pts:2},
+  {id:'b14', name:'WebSockets',             sub:'tokio-tungstenite, real-time handling',    level:'bonus',     pts:1},
+  {id:'b15', name:'System Design basics',   sub:'caching, load balancing, DB scaling',      level:'important', pts:2},
 ];
 
 const projects = [
-  {id:'p1', title:'REST API Server', desc:'Full CRUD API with axum/actix + PostgreSQL + JWT auth + Docker. This is the baseline project every mid Rust eng must have.', tags:['axum','sqlx','JWT','Docker'], pts:6},
-  {id:'p2', title:'Async CLI Tool', desc:'A command-line tool using tokio, clap, and an external API. Shows async fundamentals + real-world usage.', tags:['tokio','clap','reqwest'], pts:4},
-  {id:'p3', title:'Real-time Chat / WebSocket App', desc:'WebSocket server handling multiple concurrent connections. Tests your async concurrency skills deeply.', tags:['tokio','WebSocket','Arc<Mutex>'], pts:5},
-  {id:'p4', title:'gRPC Microservice', desc:'Two services communicating via tonic/gRPC with protobuf schemas. Shows systems-level backend thinking.', tags:['tonic','protobuf','gRPC'], pts:5},
-  {id:'p5', title:'Caching Layer / Proxy', desc:'In-memory or Redis-backed caching layer. Shows you understand performance and systems design.', tags:['Redis','tokio','perf'], pts:5},
+  {id:'p1', title:'REST API Server',       desc:'Full CRUD API with axum/actix + PostgreSQL + JWT auth + Docker.',    tags:['axum','sqlx','JWT','Docker'], pts:6},
+  {id:'p2', title:'Async CLI Tool',        desc:'CLI tool using tokio, clap, and an external API.',                   tags:['tokio','clap','reqwest'],     pts:4},
+  {id:'p3', title:'Real-time WebSocket',   desc:'WebSocket server handling multiple concurrent connections.',         tags:['tokio','WebSocket','Arc<Mutex>'],pts:5},
+  {id:'p4', title:'gRPC Microservice',     desc:'Two services communicating via tonic/gRPC with protobuf schemas.',  tags:['tonic','protobuf','gRPC'],    pts:5},
+  {id:'p5', title:'Caching Layer / Proxy', desc:'In-memory or Redis-backed caching layer showing perf thinking.',    tags:['Redis','tokio','perf'],       pts:5},
 ];
 
 const ossItems = [
-  {id:'o1', title:'Fix a bug in a Rust crate', desc:'Find and fix a real bug in any popular crate (axum, tokio, serde, etc). Even a small one counts.', pts:4},
-  {id:'o2', title:'Add docs / examples', desc:'Improve docs or add code examples to an open source Rust project. Great first contribution.', pts:2},
-  {id:'o3', title:'Write a Rust crate', desc:'Publish your own crate on crates.io — even a small utility lib. Shows real ownership.', pts:5},
-  {id:'o4', title:'Contribute to Rust ecosystem tools', desc:'Contributions to rustfmt, clippy, cargo, or compiler. High-signal, hard to fake.', pts:5},
-  {id:'o5', title:'Regular GitHub activity', desc:'Consistent commits, PRs, code reviews in public repos. Shows active participation.', pts:3},
-  {id:'o6', title:'Write technical content', desc:'Blog post, YouTube, or talk about Rust — publishes knowledge and builds credibility.', pts:2},
+  {id:'o1', title:'Fix a bug in a Rust crate',      desc:'Find and fix a real bug in axum, tokio, serde, etc.',       pts:4},
+  {id:'o2', title:'Add docs / examples',            desc:'Improve docs or add code examples to an OSS Rust project.',  pts:2},
+  {id:'o3', title:'Write a Rust crate',             desc:'Publish your own crate on crates.io — even a small utility.',pts:5},
+  {id:'o4', title:'Contribute to ecosystem tools',  desc:'rustfmt, clippy, cargo, or compiler contributions.',         pts:5},
+  {id:'o5', title:'Regular GitHub activity',        desc:'Consistent commits, PRs, reviews in public repos.',          pts:3},
+  {id:'o6', title:'Write technical content',        desc:'Blog post, YouTube, or talk about Rust.',                    pts:2},
 ];
 
-// ─────────── STATE ───────────
-const state = {checked: new Set()};
+// ── STATE ──
+const state = { checked: new Set() };
 
-// ─────────── RENDER TOPICS ───────────
+// ── RENDER ──
 function renderTopics(containerId, topics) {
-  const grid = document.getElementById(containerId);
-  grid.innerHTML = topics.map((t,i) => `
-    <div class="topic-card" id="card_${t.id}" onclick="toggleTopic('${t.id}')"
-         style="animation-delay:${i*0.04}s">
+  document.getElementById(containerId).innerHTML = topics.map(t => `
+    <div class="topic-card" id="card_${t.id}" onclick="toggleItem('${t.id}','topic')">
       <div class="topic-top">
         <div class="check-btn" id="chk_${t.id}">✓</div>
-        <div class="topic-info">
+        <div>
           <div class="topic-name">${t.name}</div>
           <div class="topic-sub">${t.sub}</div>
           <span class="topic-level level-${t.level}">
-            ${t.level==='core'?'🔴 Must Know':t.level==='important'?'🟡 Important':'🔵 Bonus'}
-            · ${t.pts}pts
+            ${t.level==='core'?'🔴 MUST KNOW':t.level==='important'?'🟡 IMPORTANT':'🔵 BONUS'} · ${t.pts}pts
           </span>
         </div>
       </div>
+      ${t.day ? `<a class="topic-day-link" href="${t.day}" onclick="event.stopPropagation()">→ study</a>` : ''}
     </div>
   `).join('');
 }
 
 function renderProjects() {
   document.getElementById('projectList').innerHTML = projects.map((p,i) => `
-    <div class="project-card" id="card_${p.id}" onclick="toggleProject('${p.id}')"
-         style="animation-delay:${i*0.06}s">
+    <div class="project-card" id="card_${p.id}" onclick="toggleItem('${p.id}','project')">
       <div class="project-num">0${i+1}</div>
       <div class="project-body">
-        <div class="project-title">${p.title} · <span style="color:var(--rust2);font-family:var(--mono);font-size:11px;">${p.pts}pts</span></div>
+        <div class="project-title">${p.title}<span class="project-pts">+${p.pts}pts</span></div>
         <div class="project-desc">${p.desc}</div>
         <div class="project-tags">${p.tags.map(t=>`<span class="ptag">${t}</span>`).join('')}</div>
       </div>
@@ -454,114 +868,96 @@ function renderProjects() {
 }
 
 function renderOSS() {
-  document.getElementById('ossList').innerHTML = ossItems.map((o,i) => `
-    <div class="oss-card" id="card_${o.id}" onclick="toggleOSS('${o.id}')"
-         style="animation-delay:${i*0.05}s">
-      <h4>${o.title} <span style="color:var(--rust2);font-family:var(--mono);font-size:10px;">+${o.pts}pts</span></h4>
+  document.getElementById('ossList').innerHTML = ossItems.map(o => `
+    <div class="oss-card" id="card_${o.id}" onclick="toggleItem('${o.id}','oss')">
+      <h4>${o.title}<span class="oss-pts">+${o.pts}pts</span></h4>
       <p>${o.desc}</p>
     </div>
   `).join('');
 }
 
-// ─────────── TOGGLE ───────────
-function toggleTopic(id) {
+// ── TOGGLE ──
+function toggleItem(id, type) {
   const card = document.getElementById('card_'+id);
-  if(state.checked.has(id)) { state.checked.delete(id); card.className='topic-card'; }
-  else { state.checked.add(id); card.className='topic-card checked'; }
-  updateScore();
-}
-function toggleProject(id) {
-  const card = document.getElementById('card_'+id);
-  if(state.checked.has(id)) { state.checked.delete(id); card.className='project-card'; }
-  else { state.checked.add(id); card.className='project-card done'; }
-  updateScore();
-}
-function toggleOSS(id) {
-  const card = document.getElementById('card_'+id);
-  if(state.checked.has(id)) { state.checked.delete(id); card.className='oss-card'; }
-  else { state.checked.add(id); card.className='oss-card done'; }
+  const isChecked = state.checked.has(id);
+  if(isChecked) {
+    state.checked.delete(id);
+    card.className = type === 'topic' ? 'topic-card' : type === 'project' ? 'project-card' : 'oss-card';
+  } else {
+    state.checked.add(id);
+    card.className = type === 'topic' ? 'topic-card checked' : type === 'project' ? 'project-card done' : 'oss-card done';
+  }
   updateScore();
 }
 
-// ─────────── FILTER ───────────
-function filterTopics(btn, grid, level) {
-  btn.closest('.toggle-row').querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+// ── FILTER ──
+function filterTopics(btn, gridId, level) {
+  btn.closest('.filter-row').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  const cards = document.querySelectorAll(`#${grid}Grid .topic-card`);
-  cards.forEach(card => {
-    if(level==='all') card.style.display='';
-    else {
-      const lvl = card.querySelector('.topic-level');
-      card.style.display = (lvl && lvl.classList.contains('level-'+level)) ? '' : 'none';
-    }
+  document.querySelectorAll(`#${gridId} .topic-card`).forEach(card => {
+    if(level === 'all') { card.style.display = ''; return; }
+    const lvlEl = card.querySelector('.topic-level');
+    card.style.display = (lvlEl && lvlEl.classList.contains('level-'+level)) ? '' : 'none';
   });
 }
 
-// ─────────── SCORE ───────────
+// ── SCORE ──
 function calcScore() {
-  let topicPts=0, topicMax=0, projPts=0, projMax=0, ossPts=0, ossMax=0;
-  [...coreTopics,...backendTopics].forEach(t => {
-    topicMax += t.pts;
-    if(state.checked.has(t.id)) topicPts += t.pts;
-  });
-  projects.forEach(p => { projMax+=p.pts; if(state.checked.has(p.id)) projPts+=p.pts; });
-  ossItems.forEach(o => { ossMax+=o.pts; if(state.checked.has(o.id)) ossPts+=o.pts; });
-
-  // Normalize to target weights: topics=60, projects=25, oss=15
-  const tScore = Math.round((topicPts/topicMax)*60);
-  const pScore = Math.round((projPts/projMax)*25);
-  const oScore = Math.round((ossPts/ossMax)*15);
-  const total = tScore + pScore + oScore;
-
-  return {tScore, pScore, oScore, total, topicPts, topicMax, projPts, projMax, ossPts, ossMax};
+  let tPts=0, tMax=0, pPts=0, pMax=0, oPts=0, oMax=0;
+  [...coreTopics,...backendTopics].forEach(t => { tMax+=t.pts; if(state.checked.has(t.id)) tPts+=t.pts; });
+  projects.forEach(p => { pMax+=p.pts; if(state.checked.has(p.id)) pPts+=p.pts; });
+  ossItems.forEach(o => { oMax+=o.pts; if(state.checked.has(o.id)) oPts+=o.pts; });
+  const tScore = Math.round((tPts/tMax)*60);
+  const pScore = Math.round((pPts/pMax)*25);
+  const oScore = Math.round((oPts/oMax)*15);
+  return { tScore, pScore, oScore, total: tScore+pScore+oScore, tPts, tMax, pPts, pMax, oPts, oMax };
 }
 
 function updateScore() {
-  const {tScore,pScore,oScore,total,topicPts,topicMax,projPts,projMax,ossPts,ossMax} = calcScore();
+  const { tScore, pScore, oScore, total, tPts, tMax, pPts, pMax, oPts, oMax } = calcScore();
 
-  // Circle arc
-  const circumference = 345;
-  const offset = circumference - (total/100)*circumference;
-  document.getElementById('scoreArc').style.strokeDashoffset = offset;
+  // ring: circumference for r=50 = 2*π*50 ≈ 314
+  const circ = 314;
+  document.getElementById('scoreArc').style.strokeDashoffset = circ - (total/100)*circ;
   document.getElementById('scoreNum').textContent = total;
-  document.getElementById('bigScore').textContent = total;
-  document.getElementById('totalBar').style.width = total+'%';
-
+  document.getElementById('bigScore').innerHTML = `${total}<span>/100</span>`;
+  document.getElementById('totalBar').style.width = total + '%';
   document.getElementById('topicScore').textContent = tScore;
-  document.getElementById('projScore').textContent = pScore;
-  document.getElementById('ossScore').textContent = oScore;
+  document.getElementById('projScore').textContent  = pScore;
+  document.getElementById('ossScore').textContent   = oScore;
+  document.getElementById('topbarScore').textContent = `${total} / 100`;
 
-  // Verdict
-  let title, desc;
-  if(total===0){title='Start Evaluating';desc='Click topics below to mark what you know.';}
-  else if(total<30){title='Early Stage';desc='Good start! Focus on Rust core first — ownership, async, error handling.';}
-  else if(total<50){title='Foundational';desc='Solid basics. Now build real projects and go deeper on async/backend.';}
-  else if(total<70){title='Growing Engineer';desc='Decent profile. Fill gaps in systems, gRPC, observability, and OSS.';}
-  else if(total<85){title='Mid-Level Ready ✓';desc='Strong profile! Polish projects and start contributing to open source.';}
-  else{title='Senior-Adjacent 🦀';desc='Exceptional! You exceed mid-level. Start targeting senior roles.';}
-
+  const verdicts = [
+    [0,  'Start Evaluating',      'Click topics below to mark what you know. Score auto-updates.'],
+    [30, 'Early Stage',           'Good start! Focus on Rust core — ownership, async, error handling.'],
+    [50, 'Foundational',          'Solid basics. Now build real projects and go deeper on async/backend.'],
+    [70, 'Growing Engineer',      'Decent profile. Fill gaps in gRPC, observability, and OSS work.'],
+    [85, 'Mid-Level Ready ✓',     'Strong profile! Polish projects and start contributing to open source.'],
+    [95, 'Senior-Adjacent 🦀',    'Exceptional! You exceed mid-level. Start targeting senior roles.'],
+  ];
+  const [,title,desc] = [...verdicts].reverse().find(([t]) => total >= t);
   document.getElementById('verdictTitle').textContent = title;
-  document.getElementById('verdictDesc').textContent = desc;
-  document.getElementById('totalVerdict').textContent = `// ${title} — keep pushing!`;
+  document.getElementById('verdictDesc').textContent  = desc;
+  document.getElementById('totalTitle').textContent   = title;
+  document.getElementById('totalVerdict').textContent = `// ${title} — keep shipping!`;
 
-  // Summary table
   document.getElementById('summaryBody').innerHTML = `
-    <tr><td>Core Rust + Backend Topics</td><td>${topicPts} / ${topicMax} topics</td><td>60</td><td>${tScore}</td></tr>
-    <tr><td>Project Portfolio</td><td>${projPts} / ${projMax} pts</td><td>25</td><td>${pScore}</td></tr>
-    <tr><td>Open Source Contributions</td><td>${ossPts} / ${ossMax} pts</td><td>15</td><td>${oScore}</td></tr>
-    <tr style="font-weight:600;"><td colspan="3" style="color:var(--rust2);">TOTAL</td><td style="font-size:16px;">${total}</td></tr>
+    <tr><td>Core Rust + Backend Topics</td><td>${tPts} / ${tMax} raw pts</td><td>60</td><td>${tScore}</td></tr>
+    <tr><td>Project Portfolio</td><td>${pPts} / ${pMax} raw pts</td><td>25</td><td>${pScore}</td></tr>
+    <tr><td>Open Source Contributions</td><td>${oPts} / ${oMax} raw pts</td><td>15</td><td>${oScore}</td></tr>
+    <tr class="sum-total"><td colspan="3" style="color:var(--accent);font-family:var(--mono);font-size:11px;letter-spacing:1px;">TOTAL SCORE</td><td style="font-size:15px;">${total}</td></tr>
   `;
 }
 
 function resetAll() {
   state.checked.clear();
-  document.querySelectorAll('.topic-card').forEach(c=>c.className='topic-card');
-  document.querySelectorAll('.project-card').forEach(c=>c.className='project-card');
-  document.querySelectorAll('.oss-card').forEach(c=>c.className='oss-card');
+  document.querySelectorAll('.topic-card').forEach(c => c.className = 'topic-card');
+  document.querySelectorAll('.project-card').forEach(c => c.className = 'project-card');
+  document.querySelectorAll('.oss-card').forEach(c => c.className = 'oss-card');
   updateScore();
 }
 
-// ─────────── INIT ───────────
+// ── INIT ──
 renderTopics('coreGrid', coreTopics);
 renderTopics('backendGrid', backendTopics);
 renderProjects();
