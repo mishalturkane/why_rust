@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Day 01 — Ownership & Borrowing | Rust Job Prep</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:    #0a0a0a;
+      --gray-950: #111111;
+      --gray-900: #1a1a1a;
+      --gray-800: #242424;
+      --gray-700: #333333;
+      --gray-600: #4a4a4a;
+      --gray-400: #888888;
+      --gray-200: #cccccc;
+      --gray-100: #e8e8e8;
+      --white:    #f5f5f5;
+      --accent:   #ff4500;
+      --accent2:  #ff6a00;
+      --code-bg:  #161616;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--gray-200);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: var(--gray-950);
+      border-bottom: 1px solid var(--gray-700);
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 48px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--gray-400);
+    }
+    .topbar-left .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+    .topbar-left .path { color: var(--gray-400); }
+    .topbar-left .path span { color: var(--white); }
+    .topbar-right {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--gray-600);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      border-bottom: 1px solid var(--gray-800);
+      padding: 60px 40px 48px;
+      background: var(--gray-950);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: 'OWNERSHIP';
+      position: absolute;
+      right: -20px;
+      top: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 120px;
+      font-weight: 800;
+      color: var(--gray-900);
+      letter-spacing: -4px;
+      pointer-events: none;
+      user-select: none;
+    }
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.1;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero-sub {
+      font-size: 14px;
+      color: var(--gray-400);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 32px;
+    }
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag {
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      color: var(--gray-400);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 4px 10px;
+      letter-spacing: 1px;
+    }
+    .tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* ── NAV PILLS ── */
+    .section-nav {
+      background: var(--gray-900);
+      border-bottom: 1px solid var(--gray-800);
+      padding: 0 40px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+    }
+    .section-nav a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      text-decoration: none;
+      padding: 14px 20px;
+      border-right: 1px solid var(--gray-800);
+      white-space: nowrap;
+      transition: color 0.15s, background 0.15s;
+    }
+    .section-nav a:hover { color: var(--white); background: var(--gray-800); }
+    .section-nav a:first-child { border-left: 1px solid var(--gray-800); }
+
+    /* ── LAYOUT ── */
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px 80px;
+    }
+
+    /* ── SECTION BLOCK ── */
+    .section {
+      border-bottom: 1px solid var(--gray-800);
+      padding: 52px 0;
+    }
+    .section:last-child { border-bottom: none; }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .section-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 2px;
+    }
+    .section-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.3px;
+    }
+    .divider { flex: 1; height: 1px; background: var(--gray-800); }
+
+    /* ── DEFINITION BOX ── */
+    .def-box {
+      background: var(--gray-900);
+      border-left: 3px solid var(--accent);
+      padding: 24px 28px;
+      margin-bottom: 24px;
+    }
+    .def-box p { color: var(--gray-200); font-size: 15px; line-height: 1.8; }
+    .def-box strong { color: var(--white); font-weight: 600; }
+
+    /* ── KEY RULES GRID ── */
+    .rules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--gray-800);
+      border: 1px solid var(--gray-800);
+      margin-top: 24px;
+    }
+    .rule-card {
+      background: var(--gray-900);
+      padding: 24px;
+    }
+    .rule-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .rule-card h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+    .rule-card p { font-size: 13px; color: var(--gray-400); line-height: 1.6; }
+
+    /* ── CODE BLOCK ── */
+    .code-wrap {
+      background: var(--code-bg);
+      border: 1px solid var(--gray-800);
+      margin: 24px 0;
+      overflow: hidden;
+    }
+    .code-header {
+      background: var(--gray-900);
+      border-bottom: 1px solid var(--gray-800);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .code-filename {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--gray-400);
+    }
+    .code-lang {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    pre {
+      padding: 24px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--gray-200);
+    }
+    .kw  { color: #c792ea; }   /* keywords */
+    .ty  { color: #82aaff; }   /* types */
+    .st  { color: #c3e88d; }   /* strings */
+    .co  { color: #546e7a; font-style: italic; } /* comments */
+    .fn  { color: #82aaff; }   /* fn name */
+    .num { color: #f78c6c; }   /* numbers */
+    .mc  { color: #ff5370; }   /* macros */
+
+    /* ── PRODUCTION BOX ── */
+    .prod-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1px;
+      background: var(--gray-800);
+      border: 1px solid var(--gray-800);
+    }
+    .prod-card {
+      background: var(--gray-950);
+      padding: 24px;
+    }
+    .prod-card .icon {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    .prod-card h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .prod-card p { font-size: 13px; color: var(--gray-400); line-height: 1.6; }
+
+    /* ── QA BLOCK ── */
+    .qa-list { display: flex; flex-direction: column; gap: 2px; }
+    .qa-item {
+      background: var(--gray-900);
+      border: 1px solid var(--gray-800);
+    }
+    .qa-q {
+      padding: 18px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .qa-q:hover { background: var(--gray-800); }
+    .q-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent);
+      min-width: 18px;
+      margin-top: 1px;
+    }
+    .q-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--white);
+      flex: 1;
+    }
+    .qa-toggle {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--gray-600);
+      font-size: 16px;
+      transition: transform 0.2s;
+    }
+    .qa-a {
+      display: none;
+      padding: 0 24px 18px 56px;
+      font-size: 13.5px;
+      color: var(--gray-400);
+      line-height: 1.75;
+    }
+    .qa-item.open .qa-a { display: block; }
+    .qa-item.open .qa-toggle { transform: rotate(45deg); color: var(--accent); }
+    .qa-a code {
+      background: var(--gray-800);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 1px 6px;
+      color: var(--accent2);
+    }
+
+    /* ── ADVANCED TABLE ── */
+    .adv-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 20px;
+    }
+    .adv-table thead tr {
+      background: var(--gray-800);
+      border-bottom: 2px solid var(--accent);
+    }
+    .adv-table th {
+      padding: 12px 16px;
+      text-align: left;
+      color: var(--gray-400);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .adv-table tbody tr {
+      border-bottom: 1px solid var(--gray-800);
+    }
+    .adv-table tbody tr:hover { background: var(--gray-900); }
+    .adv-table td {
+      padding: 14px 16px;
+      color: var(--gray-300);
+      vertical-align: top;
+      line-height: 1.6;
+    }
+    .adv-table td:first-child { color: var(--accent2); font-weight: 600; }
+
+    /* ── CHECKLIST ── */
+    .checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 13.5px;
+      color: var(--gray-400);
+    }
+    .check-item .chk {
+      width: 16px; height: 16px;
+      border: 1px solid var(--gray-600);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      font-size: 10px;
+      color: var(--accent);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      background: var(--gray-950);
+      border-top: 1px solid var(--gray-800);
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--gray-600);
+    }
+    .footer-next {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      padding: 8px 20px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 1px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    @media (max-width: 600px) {
+      .hero, .main, .topbar, .section-nav, .footer { padding-left: 20px; padding-right: 20px; }
+      .hero::before { font-size: 60px; }
+      .hero h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="dot"></span>
+    <span class="path">rust-job-prep / <span>phase-01</span> / <span>day-01.rs</span></span>
+  </div>
+  <div class="topbar-right">PHASE 01 &nbsp;|&nbsp; DAY 01 / 15</div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">// rust job ready series — phase 01: core rust</div>
+  <h1>Ownership<br/>&amp; <span>Borrowing</span></h1>
+  <div class="hero-sub">$ rustc day01.rs &nbsp;→&nbsp; zero_cost_memory_safety</div>
+  <div class="hero-tags">
+    <span class="tag active">Day 01</span>
+    <span class="tag">move</span>
+    <span class="tag">copy</span>
+    <span class="tag">clone</span>
+    <span class="tag">references</span>
+    <span class="tag">borrow checker</span>
+    <span class="tag">lifetime</span>
+  </div>
+</div>
+
+<!-- SECTION NAV -->
+<nav class="section-nav">
+  <a href="#definition">Definition</a>
+  <a href="#rules">Rules</a>
+  <a href="#code">Code</a>
+  <a href="#production">Production</a>
+  <a href="#interview">Interview</a>
+  <a href="#advanced">Advanced</a>
+</nav>
+
+<div class="main">
+
+  <!-- ══ 01. DEFINITION ══ -->
+  <div class="section" id="definition">
+    <div class="section-label">
+      <span class="section-num">01</span>
+      <span class="section-title">Definition</span>
+      <span class="divider"></span>
+    </div>
+    <div class="def-box">
+      <p>
+        <strong>Ownership</strong> is Rust's core memory management model — every value has exactly
+        <strong>one owner</strong>, and when the owner goes out of scope, the value is
+        <strong>automatically dropped</strong> (freed). No garbage collector. No manual free.
+        Enforced entirely at compile time.
+      </p>
+    </div>
+    <div class="def-box" style="border-left-color: #555; margin-bottom:0;">
+      <p>
+        <strong>Borrowing</strong> lets you use a value without taking ownership.
+        You can have either <strong>any number of immutable references</strong>
+        (<code style="background:var(--gray-800);font-family:'JetBrains Mono',monospace;padding:1px 6px;color:#ff6a00">&amp;T</code>)
+        <em>or</em> <strong>exactly one mutable reference</strong>
+        (<code style="background:var(--gray-800);font-family:'JetBrains Mono',monospace;padding:1px 6px;color:#ff6a00">&amp;mut T</code>)
+        — never both at the same time. The borrow checker enforces this statically.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══ 02. THREE RULES ══ -->
+  <div class="section" id="rules">
+    <div class="section-label">
+      <span class="section-num">02</span>
+      <span class="section-title">The Three Rules — Carved in Stone</span>
+      <span class="divider"></span>
+    </div>
+    <div class="rules-grid">
+      <div class="rule-card">
+        <div class="rule-num">RULE 01</div>
+        <h4>Single Owner</h4>
+        <p>Each value in Rust has exactly one variable that owns it at any given time.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">RULE 02</div>
+        <h4>Move on Assignment</h4>
+        <p>When ownership is assigned to another variable, the original variable is invalidated — this is a <em>move</em>. Types that implement <code>Copy</code> are the exception.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">RULE 03</div>
+        <h4>Drop on Scope Exit</h4>
+        <p>When the owner goes out of scope, Rust automatically calls <code>drop()</code>, freeing heap memory. Zero runtime cost.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 03. CODE ══ -->
+  <div class="section" id="code">
+    <div class="section-label">
+      <span class="section-num">03</span>
+      <span class="section-title">Code — move, copy, clone, borrow</span>
+      <span class="divider"></span>
+    </div>
+
+    <!-- MOVE -->
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day01_move.rs</span>
+        <span class="code-lang">MOVE</span>
+      </div>
+      <pre><span class="co">// String is heap-allocated → ownership MOVES, not copies</span>
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> s1 = String::from(<span class="st">"hello"</span>);
+    <span class="kw">let</span> s2 = s1;          <span class="co">// s1 is MOVED into s2</span>
+    <span class="co">// println!("{}", s1); // ❌ ERROR: value borrowed after move</span>
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, s2);   <span class="co">// ✅ s2 is the owner now</span>
+}</pre>
+    </div>
+
+    <!-- COPY -->
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day01_copy.rs</span>
+        <span class="code-lang">COPY</span>
+      </div>
+      <pre><span class="co">// Scalar types (i32, bool, f64, char) implement Copy — stack-only</span>
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> x: <span class="ty">i32</span> = <span class="num">42</span>;
+    <span class="kw">let</span> y = x;            <span class="co">// COPY — x is still valid</span>
+    <span class="mc">println!</span>(<span class="st">"{} {}"</span>, x, y); <span class="co">// ✅ both valid</span>
+}</pre>
+    </div>
+
+    <!-- CLONE -->
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day01_clone.rs</span>
+        <span class="code-lang">CLONE</span>
+      </div>
+      <pre><span class="co">// .clone() deep-copies heap data — explicit, intentional cost</span>
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> s1 = String::from(<span class="st">"world"</span>);
+    <span class="kw">let</span> s2 = s1.clone();  <span class="co">// deep copy of heap data</span>
+    <span class="mc">println!</span>(<span class="st">"{} {}"</span>, s1, s2); <span class="co">// ✅ both valid, both own separate memory</span>
+}</pre>
+    </div>
+
+    <!-- BORROW -->
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day01_borrow.rs</span>
+        <span class="code-lang">BORROW</span>
+      </div>
+      <pre><span class="co">// Immutable borrow — many readers, no mutation</span>
+<span class="kw">fn</span> <span class="fn">print_len</span>(s: &<span class="ty">String</span>) {   <span class="co">// borrows, does NOT take ownership</span>
+    <span class="mc">println!</span>(<span class="st">"len = {}"</span>, s.len());
+}
+
+<span class="co">// Mutable borrow — exclusive writer</span>
+<span class="kw">fn</span> <span class="fn">push_str</span>(s: &<span class="kw">mut</span> <span class="ty">String</span>) {
+    s.push_str(<span class="st">", world"</span>);
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let mut</span> s = String::from(<span class="st">"hello"</span>);
+    <span class="fn">print_len</span>(&s);           <span class="co">// immutable borrow</span>
+    <span class="fn">push_str</span>(&<span class="kw">mut</span> s);       <span class="co">// mutable borrow</span>
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, s);      <span class="co">// ✅ "hello, world"</span>
+}</pre>
+    </div>
+
+    <!-- BORROW CONFLICT -->
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day01_conflict.rs</span>
+        <span class="code-lang">COMPILE ERROR</span>
+      </div>
+      <pre><span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let mut</span> s = String::from(<span class="st">"hello"</span>);
+    <span class="kw">let</span> r1 = &s;             <span class="co">// immutable borrow ✅</span>
+    <span class="kw">let</span> r2 = &s;             <span class="co">// another immutable borrow ✅</span>
+    <span class="kw">let</span> r3 = &<span class="kw">mut</span> s;        <span class="co">// ❌ cannot borrow as mutable — r1, r2 still active</span>
+    <span class="mc">println!</span>(<span class="st">"{} {} {}"</span>, r1, r2, r3);
+}</pre>
+    </div>
+  </div>
+
+  <!-- ══ 04. WHY PRODUCTION ══ -->
+  <div class="section" id="production">
+    <div class="section-label">
+      <span class="section-num">04</span>
+      <span class="section-title">Why We Use It in Production</span>
+      <span class="divider"></span>
+    </div>
+    <div class="prod-grid">
+      <div class="prod-card">
+        <div class="icon">🚫</div>
+        <h4>Zero Memory Bugs at Runtime</h4>
+        <p>No dangling pointers, no use-after-free, no double-free. The borrow checker catches them all at compile time — your production binary ships without a class of bugs.</p>
+      </div>
+      <div class="prod-card">
+        <div class="icon">⚡</div>
+        <h4>No GC Pauses</h4>
+        <p>No garbage collector means predictable, low-latency performance. Critical for real-time systems, game engines, trading systems, and high-throughput web servers.</p>
+      </div>
+      <div class="prod-card">
+        <div class="icon">🔒</div>
+        <h4>Thread Safety Guaranteed</h4>
+        <p>Ownership rules extend to concurrency. You cannot accidentally share mutable state across threads — the compiler prevents data races entirely.</p>
+      </div>
+      <div class="prod-card">
+        <div class="icon">🔧</div>
+        <h4>Explicit Resource Management</h4>
+        <p>RAII via <code>Drop</code>: file handles, DB connections, mutex locks — all released deterministically when the owner goes out of scope. No leaks by design.</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 24px; background: var(--gray-900); border: 1px solid var(--gray-800); padding: 20px 24px;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--accent); letter-spacing:2px; margin-bottom:12px;">REAL-WORLD USAGE</div>
+      <div class="checklist">
+        <div class="check-item"><span class="chk">→</span><span><strong style="color:var(--white)">AWS Firecracker</strong> — microVM runtime; ownership ensures no memory leaks across VM lifecycle</span></div>
+        <div class="check-item"><span class="chk">→</span><span><strong style="color:var(--white)">Cloudflare Workers</strong> — Rust's zero-GC borrow model enables microsecond-cold-start edge functions</span></div>
+        <div class="check-item"><span class="chk">→</span><span><strong style="color:var(--white)">Discord</strong> — switched from Go to Rust; eliminated GC latency spikes using ownership + drop semantics</span></div>
+        <div class="check-item"><span class="chk">→</span><span><strong style="color:var(--white)">Linux Kernel (Rust modules)</strong> — ownership prevents kernel memory safety bugs without performance cost</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 05. INTERVIEW Q&A ══ -->
+  <div class="section" id="interview">
+    <div class="section-label">
+      <span class="section-num">05</span>
+      <span class="section-title">Interview Q&amp;A — Job Ready</span>
+      <span class="divider"></span>
+    </div>
+    <div class="qa-list">
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q1</span>
+          <span class="q-text">What is ownership in Rust, and why does Rust need it?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          Ownership is a compile-time memory management system where each value has a single owner. When the owner goes out of scope, the value is freed. Rust needs it to achieve memory safety <em>without</em> a garbage collector — giving you C-level performance with freedom from memory bugs like use-after-free and double-free. The compiler's borrow checker enforces ownership rules at zero runtime cost.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q2</span>
+          <span class="q-text">What is the difference between move, copy, and clone?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          <strong style="color:var(--white)">Move</strong>: transfers ownership of heap-allocated data. The original variable is invalidated. Default for types like <code>String</code>, <code>Vec</code>.<br/><br/>
+          <strong style="color:var(--white)">Copy</strong>: implicitly duplicates stack-only data. The original stays valid. Types like <code>i32</code>, <code>bool</code>, <code>f64</code> implement <code>Copy</code>.<br/><br/>
+          <strong style="color:var(--white)">Clone</strong>: explicit, deep copy of heap data via <code>.clone()</code>. Both variables own independent data. Use it consciously — it has a runtime cost.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q3</span>
+          <span class="q-text">How many mutable references can you have at a time, and why?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          Exactly <strong style="color:var(--white)">one</strong> mutable reference (<code>&amp;mut T</code>) at any point in time, and <em>zero</em> immutable references when a mutable reference is active. This prevents data races at compile time — if multiple references could mutate simultaneously, you'd have undefined behavior. Rust makes the concurrency contract explicit and statically verified.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q4</span>
+          <span class="q-text">What is a dangling reference, and how does Rust prevent it?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          A dangling reference points to memory that has already been freed. In C/C++, this causes undefined behavior. Rust's borrow checker tracks lifetimes and ensures a reference can never outlive the data it points to. If you try to return a reference to a local variable, the compiler rejects it at compile time — not at runtime, not in production.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q5</span>
+          <span class="q-text">When would you use <code>&amp;str</code> vs <code>String</code>?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          Use <code>&amp;str</code> (a string slice / borrowed view) for <strong>read-only access</strong> to string data — function parameters, string literals, slices of a <code>String</code>. It's zero-copy and cheap.<br/><br/>
+          Use <code>String</code> when you need to <strong>own</strong> the string data, grow it, or return it from a function. The general rule: prefer <code>&amp;str</code> in function signatures for flexibility; use <code>String</code> when you need ownership or mutation.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q6</span>
+          <span class="q-text">What does the <code>Drop</code> trait do, and how does it relate to ownership?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          The <code>Drop</code> trait defines custom cleanup logic that runs automatically when an owner goes out of scope — like a destructor. Rust calls <code>drop()</code> in reverse order of creation. This is RAII (Resource Acquisition Is Initialization): resources (file handles, locks, heap memory) are deterministically released when the owning struct is dropped. No GC, no explicit free needed.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ 06. ADVANCED ══ -->
+  <div class="section" id="advanced">
+    <div class="section-label">
+      <span class="section-num">06</span>
+      <span class="section-title">Advanced Usage — Where Ownership Gets Deep</span>
+      <span class="divider"></span>
+    </div>
+    <table class="adv-table">
+      <thead>
+        <tr>
+          <th>Pattern</th>
+          <th>What It Solves</th>
+          <th>Used In</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Rc&lt;T&gt; / Arc&lt;T&gt;</td>
+          <td>Multiple ownership via reference counting. <code>Arc</code> is thread-safe. Use when you genuinely need shared ownership.</td>
+          <td>Graph structures, shared caches, async runtimes</td>
+        </tr>
+        <tr>
+          <td>Cell&lt;T&gt; / RefCell&lt;T&gt;</td>
+          <td>Interior mutability — mutate data through an immutable reference. <code>RefCell</code> moves borrow checking to runtime.</td>
+          <td>UI trees, mock objects, single-threaded shared state</td>
+        </tr>
+        <tr>
+          <td>Cow&lt;'a, B&gt;</td>
+          <td>Clone-on-Write — borrow data until mutation is needed, then clone. Avoids unnecessary allocations.</td>
+          <td>Parsers, serializers, string processing in hot paths</td>
+        </tr>
+        <tr>
+          <td>Pin&lt;T&gt;</td>
+          <td>Prevents a value from being moved in memory. Required for self-referential structs and <code>async</code>/<code>await</code> state machines.</td>
+          <td>async futures, tokio tasks, custom allocators</td>
+        </tr>
+        <tr>
+          <td>ManuallyDrop&lt;T&gt;</td>
+          <td>Opt out of automatic <code>drop()</code>. Gives you manual control over destruction order. Used in unsafe code.</td>
+          <td>FFI, custom allocators, arena memory management</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="code-wrap" style="margin-top:24px;">
+      <div class="code-header">
+        <span class="code-filename">day01_advanced.rs — Rc + RefCell interior mutability</span>
+        <span class="code-lang">ADVANCED</span>
+      </div>
+      <pre><span class="kw">use</span> std::cell::RefCell;
+<span class="kw">use</span> std::rc::Rc;
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="co">// Multiple owners + interior mutability without unsafe</span>
+    <span class="kw">let</span> shared = Rc::new(RefCell::new(vec![<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]));
+
+    <span class="kw">let</span> clone_a = Rc::clone(&shared);
+    <span class="kw">let</span> clone_b = Rc::clone(&shared);
+
+    clone_a.borrow_mut().push(<span class="num">4</span>);   <span class="co">// runtime borrow check</span>
+    clone_b.borrow_mut().push(<span class="num">5</span>);
+
+    <span class="mc">println!</span>(<span class="st">"{:?}"</span>, shared.borrow()); <span class="co">// [1, 2, 3, 4, 5]</span>
+    <span class="co">// ⚠️  panics at runtime if you violate borrow rules</span>
+    <span class="co">// Use Arc<Mutex<T>> instead for multi-threaded scenarios</span>
+}</pre>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- FOOTER -->
+<div class="footer">
+  <span>// phase-01 &nbsp;·&nbsp; day-01 of 15 &nbsp;·&nbsp; ownership &amp; borrowing ✓</span>
+  <span style="color: var(--gray-700)">day-02 → lifetimes</span>
+</div>
+
+<script>
+  function toggle(el) {
+    el.parentElement.classList.toggle('open');
+  }
+</script>
+</body>
+</html>
