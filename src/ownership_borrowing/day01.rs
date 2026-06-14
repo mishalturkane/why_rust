@@ -231,12 +231,13 @@ pub fn borrowing_reference_with_2_rules() {
     // r1, r2 are no longer used after this point (NLL marks them as dead)
 
     let r3 = &mut s1; // mutable borrow -> OK now, since r1, r2 are dead
+
+   
+     
     r3.push_str(", world");
     println!("Rule 1: one mutable ref -> r3 = {}", r3);
 
-    // let r4 = &s1;       // ❌ ERROR if uncommented: cannot borrow as immutable
-    // let r5 = &mut s1;   // ❌ ERROR if uncommented: cannot borrow as mutable twice
-    // println!("{} {} {}", r3, r4, r5); // would conflict with r3 still being used
+   
 
     println!("Rule 1: final value -> s1 = {}", s1);
 
