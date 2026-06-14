@@ -1,3 +1,4 @@
+//  time for ownership
 #[allow(dead_code)]
 pub fn how_stack_heap_looks(){
     let s1 = String::from("hello");
@@ -216,7 +217,6 @@ pub fn step4_borrow_rule_violation() {
 
     println!("s1: {}", s1);
 }
-
 
 
 #[allow(dead_code)]
