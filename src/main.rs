@@ -2,6 +2,7 @@
 mod ownership_borrowing;
 
 fn main() {
-    ownership_borrowing::copy_vs_move_demo();
-   
+  
+    ownership_borrowing::borrowing_reference_with_2_rules();
+    
 }
