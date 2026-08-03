@@ -1,8 +1,5 @@
-
-mod ownership_borrowing;
-
 fn main() {
-  
-    ownership_borrowing::borrowing_reference_with_2_rules();
-    
+    let boxed = Box::new(5);
+    let vector = vec![9,8,7];
+    println!("boxed: {:?}, vector: {:?}", boxed, vector);
 }

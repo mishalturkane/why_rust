@@ -24,7 +24,9 @@
       --code-bg:  #161616;
     }
 
-    html { scroll-behavior: smooth; }
+  
+    html { scroll-behavior: smooth; scrollbar-width: none; }
+    html::-webkit-scrollbar { display: none; }
 
     body {
       background: var(--black);
@@ -64,6 +66,64 @@
       font-size: 11px;
       color: var(--gray-600);
     }
+    /* ── DAY NAV ── */
+    .day-nav {
+      background: var(--gray-900);
+      border-bottom: 1px solid var(--gray-800);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .day-nav::-webkit-scrollbar { display: none; }
+    .day-nav-inner { display: flex; min-width: max-content; }
+    .day-nav-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--gray-600);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0 20px;
+      border-right: 1px solid var(--gray-800);
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .day-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--gray-600);
+      text-decoration: none;
+      padding: 10px 16px;
+      border-right: 1px solid var(--gray-800);
+      white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: background 0.12s, color 0.12s;
+      position: relative;
+    }
+    .day-link:hover { background: var(--gray-800); color: var(--white); }
+    .day-link.active { color: var(--white); background: var(--gray-800); }
+    .day-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+    }
+    .day-link.done { color: var(--green); }
+    .day-link.done::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--green);
+    }
+    .day-link .day-num { color: inherit; letter-spacing: 1px; }
+    .day-link .day-topic { font-size: 9px; color: var(--gray-600); font-weight: 400; }
+    .day-link.active .day-topic, .day-link:hover .day-topic { color: var(--gray-400); }
+    .day-link.done .day-topic { color: var(--green); opacity: 0.7; }
+
 
     /* ── HERO ── */
     .hero {
@@ -242,11 +302,17 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 12px;
     }
     .code-filename {
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
       color: var(--gray-400);
+    }
+    .code-header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     .code-lang {
       font-family: 'JetBrains Mono', monospace;
@@ -255,6 +321,23 @@
       font-weight: 700;
       letter-spacing: 1px;
     }
+    .copy-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--gray-400);
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .copy-btn:hover { color: var(--white); border-color: var(--accent); }
+    .copy-btn.copied { color: #fff; background: var(--accent); border-color: var(--accent); }
     pre {
       padding: 24px;
       overflow-x: auto;
@@ -263,6 +346,77 @@
       line-height: 1.8;
       color: var(--gray-200);
     }
+
+    /* ── CODE EXPLAINER (one-liner / underhood notes) ── */
+    .code-note {
+      background: var(--gray-900);
+      border: 1px solid var(--gray-800);
+      border-left: 3px solid var(--gray-600);
+      padding: 14px 20px;
+      margin: 24px 0 0;
+      font-size: 13px;
+      color: var(--gray-200);
+      line-height: 1.7;
+    }
+    .code-note.mine { border-left-color: var(--accent2); }
+    .code-note .note-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: var(--accent2);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .code-note strong { color: var(--white); }
+    .code-note code {
+      background: var(--gray-800);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 1px 6px;
+      color: var(--accent2);
+    }
+
+    /* underhood comment block under "my example" code */
+    .underhood {
+      background: #0d0d0d;
+      border: 1px solid var(--gray-800);
+      border-top: none;
+      padding: 16px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--gray-400);
+      line-height: 1.8;
+    }
+    .underhood .note-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: var(--accent2);
+      display: block;
+      margin-bottom: 8px;
+    }
+    .underhood li { list-style: none; padding-left: 16px; position: relative; margin-bottom: 4px; }
+    .underhood li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); }
+
+    /* sub-section heading inside Code section, e.g. "Your Examples" */
+    .subsec-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 40px 0 16px;
+    }
+    .subsec-heading .label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent2);
+      white-space: nowrap;
+    }
+    .subsec-heading .line { flex: 1; height: 1px; background: var(--gray-800); }
     .kw  { color: #c792ea; }   /* keywords */
     .ty  { color: #82aaff; }   /* types */
     .st  { color: #c3e88d; }   /* strings */
@@ -448,6 +602,76 @@
   </div>
   <div class="topbar-right">PHASE 01 &nbsp;|&nbsp; DAY 01 / 15</div>
 </div>
+<!-- ── DAY NAVIGATION ── -->
+<nav class="day-nav" aria-label="Day Navigation">
+  <div class="day-nav-inner">
+    <span class="day-nav-label">// PHASE 01</span>
+    <a href="/" class="day-link">
+      <span class="day-num">HOME</span>
+      <span class="day-topic">eval</span>
+    </a>
+    <a href="/day01" class="day-link done active">
+      <span class="day-num">DAY 01</span>
+      <span class="day-topic">ownership</span>
+    </a>
+    <a href="/day02" class="day-link done">
+      <span class="day-num">DAY 02</span>
+      <span class="day-topic">lifetimes</span>
+    </a>
+    <a href="/day03" class="day-link ">
+      <span class="day-num">DAY 03</span>
+      <span class="day-topic">traits</span>
+    </a>
+    <a href="/day04" class="day-link">
+      <span class="day-num">DAY 04</span>
+      <span class="day-topic">error handling</span>
+    </a>
+    <a href="/day05" class="day-link">
+      <span class="day-num">DAY 05</span>
+      <span class="day-topic">enums</span>
+    </a>
+    <a href="/day06" class="day-link">
+      <span class="day-num">DAY 06</span>
+      <span class="day-topic">iterators</span>
+    </a>
+    <a href="/day07" class="day-link">
+      <span class="day-num">DAY 07</span>
+      <span class="day-topic">async/await</span>
+    </a>
+    <a href="/day08" class="day-link">
+      <span class="day-num">DAY 08</span>
+      <span class="day-topic">concurrency</span>
+    </a>
+    <a href="/day09" class="day-link">
+      <span class="day-num">DAY 09</span>
+      <span class="day-topic">smart ptrs</span>
+    </a>
+    <a href="/day10" class="day-link">
+      <span class="day-num">DAY 10</span>
+      <span class="day-topic">macros</span>
+    </a>
+    <a href="/day11" class="day-link">
+      <span class="day-num">DAY 11</span>
+      <span class="day-topic">unsafe rust</span>
+    </a>
+    <a href="/day12" class="day-link">
+      <span class="day-num">DAY 12</span>
+      <span class="day-topic">proc macros</span>
+    </a>
+    <a href="/day13" class="day-link">
+      <span class="day-num">DAY 13</span>
+      <span class="day-topic">ffi</span>
+    </a>
+    <a href="/day14" class="day-link">
+      <span class="day-num">DAY 14</span>
+      <span class="day-topic">mem layout</span>
+    </a>
+    <a href="/day15" class="day-link">
+      <span class="day-num">DAY 15</span>
+      <span class="day-topic">testing</span>
+    </a>
+  </div>
+</nav>
 
 <!-- HERO -->
 <div class="hero">
@@ -539,10 +763,17 @@
     </div>
 
     <!-- MOVE -->
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      Heap data (<code>String</code>) cannot have two owners — assigning <code>s1</code> to <code>s2</code> transfers ownership instead of copying, so the original variable is invalidated.
+    </div>
     <div class="code-wrap">
       <div class="code-header">
         <span class="code-filename">day01_move.rs</span>
-        <span class="code-lang">MOVE</span>
+        <div class="code-header-right">
+          <span class="code-lang">MOVE</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
       </div>
       <pre><span class="co">// String is heap-allocated → ownership MOVES, not copies</span>
 <span class="kw">fn</span> <span class="fn">main</span>() {
@@ -554,10 +785,17 @@
     </div>
 
     <!-- COPY -->
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      Stack-only scalar types (<code>i32</code>, <code>bool</code>, <code>f64</code>, <code>char</code>) implement <code>Copy</code> — assignment silently duplicates the bits, so both <code>x</code> and <code>y</code> stay valid.
+    </div>
     <div class="code-wrap">
       <div class="code-header">
         <span class="code-filename">day01_copy.rs</span>
-        <span class="code-lang">COPY</span>
+        <div class="code-header-right">
+          <span class="code-lang">COPY</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
       </div>
       <pre><span class="co">// Scalar types (i32, bool, f64, char) implement Copy — stack-only</span>
 <span class="kw">fn</span> <span class="fn">main</span>() {
@@ -568,10 +806,17 @@
     </div>
 
     <!-- CLONE -->
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      When you genuinely need two independent copies of heap data, call <code>.clone()</code> explicitly — Rust never deep-copies silently, so the cost is always visible in the source.
+    </div>
     <div class="code-wrap">
       <div class="code-header">
         <span class="code-filename">day01_clone.rs</span>
-        <span class="code-lang">CLONE</span>
+        <div class="code-header-right">
+          <span class="code-lang">CLONE</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
       </div>
       <pre><span class="co">// .clone() deep-copies heap data — explicit, intentional cost</span>
 <span class="kw">fn</span> <span class="fn">main</span>() {
@@ -582,10 +827,17 @@
     </div>
 
     <!-- BORROW -->
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      Pass <code>&amp;String</code> when a function only needs to read, and <code>&amp;mut String</code> when it needs to mutate — neither takes ownership, so the caller keeps using the value afterwards.
+    </div>
     <div class="code-wrap">
       <div class="code-header">
         <span class="code-filename">day01_borrow.rs</span>
-        <span class="code-lang">BORROW</span>
+        <div class="code-header-right">
+          <span class="code-lang">BORROW</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
       </div>
       <pre><span class="co">// Immutable borrow — many readers, no mutation</span>
 <span class="kw">fn</span> <span class="fn">print_len</span>(s: &<span class="ty">String</span>) {   <span class="co">// borrows, does NOT take ownership</span>
@@ -606,10 +858,17 @@
     </div>
 
     <!-- BORROW CONFLICT -->
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      This snippet shows what the compiler rejects: an active mutable borrow (<code>r3</code>) cannot coexist with active immutable borrows (<code>r1</code>, <code>r2</code>) on the same value.
+    </div>
     <div class="code-wrap">
       <div class="code-header">
         <span class="code-filename">day01_conflict.rs</span>
-        <span class="code-lang">COMPILE ERROR</span>
+        <div class="code-header-right">
+          <span class="code-lang">COMPILE ERROR</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
       </div>
       <pre><span class="kw">fn</span> <span class="fn">main</span>() {
     <span class="kw">let mut</span> s = String::from(<span class="st">"hello"</span>);
@@ -618,6 +877,460 @@
     <span class="kw">let</span> r3 = &<span class="kw">mut</span> s;        <span class="co">// ❌ cannot borrow as mutable — r1, r2 still active</span>
     <span class="mc">println!</span>(<span class="st">"{} {} {}"</span>, r1, r2, r3);
 }</pre>
+    </div>
+
+    <!-- ══════════ YOUR OWN EXAMPLES — STACK/HEAP VISUALIZATION ══════════ -->
+    <div class="subsec-heading">
+      <span class="label">// my own examples — stack &amp; heap visualizer</span>
+      <span class="line"></span>
+    </div>
+
+    <!-- MY EX 1: how_stack_heap_looks -->
+    <div class="code-note mine">
+      <span class="note-tag">USE CASE — MY EXAMPLE</span>
+      Print the <strong>stack address of the <code>String</code> struct itself</strong> vs the <strong>heap address its internal pointer points to</strong> — proves a <code>String</code> is a stack-allocated struct (ptr, len, cap) pointing into the heap.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day01_my_stack_heap_look.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">STACK vs HEAP</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="co">//  time for ownership</span>
+<span class="mc">#[allow(dead_code)]</span>
+<span class="kw">pub fn</span> <span class="fn">how_stack_heap_looks</span>(){
+    <span class="kw">let</span> s1 = String::from(<span class="st">"hello"</span>);
+    <span class="mc">println!</span>(<span class="st">"address of s1 (stack struct)  : {:p}"</span>, &s1);
+    <span class="mc">println!</span>(<span class="st">"ptr inside s1 (heap address)  : {:p}"</span>, s1.as_ptr());
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><code>&amp;s1</code> prints the address of the <code>String</code> <strong>struct on the stack</strong> — this struct is just 24 bytes: a pointer, a length, and a capacity.</li>
+        <li><code>s1.as_ptr()</code> prints the address that the struct's internal pointer holds — this is where the actual bytes <code>h e l l o</code> live, <strong>on the heap</strong>.</li>
+        <li>These two addresses will always be different — one is "where the box is", the other is "where the box points to".</li>
+      </ul>
+    </div>
+
+    <!-- MY EX 2: compare_stack_heap_clone_version + move_version -->
+    <div class="code-note mine">
+      <span class="note-tag">USE CASE — MY EXAMPLE</span>
+      Side-by-side comparison: <strong><code>.clone()</code></strong> allocates a brand-new heap block (two different <code>as_ptr()</code> addresses), while a <strong>move</strong> (<code>s2 = s1</code>) transfers the same heap block — <code>s2.as_ptr()</code> equals what <code>s1.as_ptr()</code> was, proving no copy happened.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day01_my_clone_vs_move.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">CLONE vs MOVE</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="mc">#[allow(dead_code)]</span>
+<span class="kw">pub fn</span> <span class="fn">compare_stack_heap_clone_version</span>() {
+    <span class="kw">let</span> s1 = String::from(<span class="st">"hello"</span>);
+    <span class="kw">let</span> s2 = s1.clone();
+
+    <span class="mc">println!</span>(<span class="st">"=== CLONE VERSION (s2 = s1.clone()) ==="</span>);
+    <span class="mc">println!</span>(<span class="st">"STACK                              HEAP"</span>);
+    <span class="mc">println!</span>(<span class="st">"┌──────────────────────┐"</span>);
+    <span class="mc">println!</span>(<span class="st">"│ s1 @ {:p}  │"</span>, &s1 <span class="kw">as</span> *<span class="kw">const</span> String);
+    <span class="mc">println!</span>(<span class="st">"│  ptr  ──────────────┼──────► ┌──────────────────┐"</span>);
+    <span class="mc">println!</span>(<span class="st">"│  len  = {:&lt;13} │        │ {:p}   │"</span>, s1.len(), s1.as_ptr());
+    <span class="mc">println!</span>(<span class="st">"│  cap  = {:&lt;13} │        │ h e l l o        │"</span>, s1.capacity());
+    <span class="mc">println!</span>(<span class="st">"└──────────────────────┘        └──────────────────┘"</span>);
+
+    <span class="mc">println!</span>(<span class="st">"┌──────────────────────┐"</span>);
+    <span class="mc">println!</span>(<span class="st">"│ s2 @ {:p}  │"</span>, &s2 <span class="kw">as</span> *<span class="kw">const</span> String);
+    <span class="mc">println!</span>(<span class="st">"│  ptr  ──────────────┼──────► ┌──────────────────┐  (different heap block)"</span>);
+    <span class="mc">println!</span>(<span class="st">"│  len  = {:&lt;13} │        │ {:p}   │"</span>, s2.len(), s2.as_ptr());
+    <span class="mc">println!</span>(<span class="st">"│  cap  = {:&lt;13} │        │ h e l l o        │"</span>, s2.capacity());
+    <span class="mc">println!</span>(<span class="st">"└──────────────────────┘        └──────────────────┘"</span>);
+}
+
+<span class="mc">#[allow(dead_code)]</span>
+<span class="kw">pub fn</span> <span class="fn">compare_stack_heap_move_version</span>() {
+    <span class="kw">let</span> s1 = String::from(<span class="st">"hello"</span>);
+
+    <span class="kw">let</span> s1_stack_addr = &s1 <span class="kw">as</span> *<span class="kw">const</span> String;
+    <span class="kw">let</span> s1_heap_addr  = s1.as_ptr();
+    <span class="kw">let</span> s1_len = s1.len();
+    <span class="kw">let</span> s1_cap = s1.capacity();
+
+    <span class="kw">let</span> s2 = s1; <span class="co">// s1 moved, can't use s1 after this</span>
+
+    <span class="mc">println!</span>(<span class="st">"=== MOVE VERSION (s2 = s1) ==="</span>);
+    <span class="mc">println!</span>(<span class="st">"STACK                              HEAP"</span>);
+    <span class="mc">println!</span>(<span class="st">"┌──────────────────────┐"</span>);
+    <span class="mc">println!</span>(<span class="st">"│ s1 @ {:p}  │  (s1 moved — no longer valid)"</span>, s1_stack_addr);
+    <span class="mc">println!</span>(<span class="st">"│  ptr  ──────────────┼──────► ┌──────────────────┐"</span>);
+    <span class="mc">println!</span>(<span class="st">"│  len  = {:&lt;13} │        │ {:p}   │"</span>, s1_len, s1_heap_addr);
+    <span class="mc">println!</span>(<span class="st">"│  cap  = {:&lt;13} │        │ h e l l o        │"</span>, s1_cap);
+    <span class="mc">println!</span>(<span class="st">"└──────────────────────┘        └──────────────────┘"</span>);
+
+    <span class="mc">println!</span>(<span class="st">"┌──────────────────────┐"</span>);
+    <span class="mc">println!</span>(<span class="st">"│ s2 @ {:p}  │"</span>, &s2 <span class="kw">as</span> *<span class="kw">const</span> String);
+    <span class="mc">println!</span>(<span class="st">"│  ptr  ──────────────┼──────► ┌──────────────────┐  (SAME heap block as s1)"</span>);
+    <span class="mc">println!</span>(<span class="st">"│  len  = {:&lt;13} │        │ {:p}   │"</span>, s2.len(), s2.as_ptr());
+    <span class="mc">println!</span>(<span class="st">"│  cap  = {:&lt;13} │        │ h e l l o        │"</span>, s2.capacity());
+    <span class="mc">println!</span>(<span class="st">"└──────────────────────┘        └──────────────────┘"</span>);
+}
+
+<span class="mc">#[allow(dead_code)]</span>
+<span class="kw">pub fn</span> <span class="fn">compare_stack_heap</span>(){
+    compare_stack_heap_clone_version();
+    <span class="mc">println!</span>(<span class="st">"------------------------------------------"</span>);
+    compare_stack_heap_move_version();
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><strong>Clone:</strong> <code>s1</code> and <code>s2</code> each get their own 24-byte stack struct AND their own heap allocation — <code>s1.as_ptr() != s2.as_ptr()</code>. Two separate "hello" strings exist in memory.</li>
+        <li><strong>Move:</strong> <code>s2.as_ptr()</code> equals the heap address that <code>s1</code> used to point to. The bytes <code>h e l l o</code> never moved — only the <strong>ownership</strong> (the stack struct's bookkeeping) was transferred to <code>s2</code>.</li>
+        <li>This is why move is O(1) — it's just copying 24 bytes (ptr/len/cap) on the stack, never touching the heap data.</li>
+        <li><code>s1_stack_addr</code>, <code>s1_heap_addr</code> etc. are captured <em>before</em> the move because <code>s1</code> becomes invalid right after <code>let s2 = s1;</code>.</li>
+      </ul>
+    </div>
+
+    <!-- MY EX 3: ownership_with_3_rules -->
+    <div class="code-note mine">
+      <span class="note-tag">USE CASE — MY EXAMPLE</span>
+      A single function walking through all <strong>3 ownership rules</strong> in order — single owner, move on assignment, and drop on scope exit — with the exact compile errors commented inline.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day01_my_three_rules.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">3 RULES DEMO</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="mc">#[allow(dead_code)]</span>
+<span class="kw">pub fn</span> <span class="fn">ownership_with_3_rules</span>() {
+
+    <span class="co">// ---- Rule 1: Each value has one owner ----</span>
+    <span class="kw">let</span> s1 = String::from(<span class="st">"hello"</span>);
+    <span class="mc">println!</span>(<span class="st">"Rule 1: s1 is the owner of \"hello\" -&gt; {}"</span>, s1);
+
+    <span class="co">// ---- Rule 2: Only one owner at a time ----</span>
+    <span class="kw">let</span> s2 = s1; <span class="co">// ownership moves from s1 to s2</span>
+    <span class="co">// println!("{}", s1); // ❌ ERROR: s1 was moved, no longer valid</span>
+    <span class="mc">println!</span>(<span class="st">"Rule 2: ownership moved -&gt; s2 = {}"</span>, s2);
+
+    <span class="co">// ---- Rule 3: When owner goes out of scope, value is dropped ----</span>
+    {
+        <span class="kw">let</span> s3 = String::from(<span class="st">"world"</span>);
+        <span class="mc">println!</span>(<span class="st">"Rule 3: s3 is alive inside this scope -&gt; {}"</span>, s3);
+    } <span class="co">// s3 goes out of scope here -&gt; heap memory dropped/freed</span>
+    <span class="co">// println!("{}", s3); // ❌ ERROR: s3 does not exist outside this scope</span>
+
+    <span class="mc">println!</span>(<span class="st">"Rule 3: s3 has been dropped, cannot use it here"</span>);
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><strong>Rule 1:</strong> <code>s1</code> is the single owner of the heap-allocated <code>"hello"</code> right after creation.</li>
+        <li><strong>Rule 2:</strong> <code>let s2 = s1;</code> moves ownership — the compiler marks <code>s1</code> as "moved out" in its borrow-check graph. Any later use of <code>s1</code> is a <strong>compile-time error</strong>, not a runtime one.</li>
+        <li><strong>Rule 3:</strong> the inner <code>{ }</code> block creates a new scope. When it ends, <code>s3</code>'s <code>Drop::drop()</code> runs automatically, freeing <code>"world"</code>'s heap memory — deterministically, with zero GC.</li>
+      </ul>
+    </div>
+
+    <!-- MY EX 4: copy_vs_move_demo -->
+    <div class="code-note mine">
+      <span class="note-tag">USE CASE — MY EXAMPLE</span>
+      Print the <strong>stack addresses</strong> of two <code>i32</code> values after assignment — proves <code>Copy</code> types get their <strong>own independent stack slot</strong>, unlike a move where the original is invalidated.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day01_my_copy_vs_move.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">COPY vs MOVE</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="mc">#[allow(dead_code)]</span>
+<span class="kw">pub fn</span> <span class="fn">copy_vs_move_demo</span>() {
+
+    <span class="co">// ---- COPY TYPES (i32, bool, f64, char etc.) ----</span>
+    <span class="kw">let</span> x = <span class="num">5</span>;
+    <span class="kw">let</span> y = x; <span class="co">// COPY, not move — i32 is a Copy type</span>
+
+    <span class="mc">println!</span>(<span class="st">"addres of both: {:p}\n{:p}"</span>, &x, &y);
+
+    <span class="mc">println!</span>(<span class="st">"Copy type: x = {}, y = {}"</span>, x, y); <span class="co">// ✅ both valid</span>
+
+    <span class="co">// ---- MOVE TYPES (String, Vec, etc.) ----</span>
+    <span class="kw">let</span> s1 = String::from(<span class="st">"hello"</span>);
+    <span class="kw">let</span> s2 = s1; <span class="co">// MOVE — s1 is no longer valid</span>
+
+    <span class="co">// println!("{}", s1); // ❌ ERROR: value borrowed here after move</span>
+    <span class="mc">println!</span>(<span class="st">"Move type: s2 = {}"</span>, s2);
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><code>&amp;x</code> and <code>&amp;y</code> print <strong>two different stack addresses</strong> — even though <code>y = x</code>, Rust gave <code>y</code> its own 4-byte slot and bitwise-copied <code>5</code> into it.</li>
+        <li>Both <code>x</code> and <code>y</code> remain valid and independent — mutating one (if mutable) would never affect the other.</li>
+        <li>Contrast with <code>s2 = s1</code> below it: no new heap allocation happens, ownership of the <em>same</em> heap block just transfers, and <code>s1</code> becomes unusable.</li>
+      </ul>
+    </div>
+
+    <!-- ══════════ YOUR OWN EXAMPLES — BORROWING & REFERENCES ══════════ -->
+    <div class="subsec-heading">
+      <span class="label">// my own examples — borrowing &amp; references</span>
+      <span class="line"></span>
+    </div>
+
+    <!-- MY EX 5: step1_what_is_reference -->
+    <div class="code-note mine">
+      <span class="note-tag">USE CASE — MY EXAMPLE</span>
+      Visualize what a reference (<code>&amp;String</code>) actually <strong>is in memory</strong>: the reference <code>r</code> itself lives on the stack and stores the address of <code>s1</code> — it's a pointer to a pointer.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day01_my_what_is_reference.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">REFERENCE ANATOMY</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="mc">#[allow(dead_code)]</span>
+<span class="kw">pub fn</span> <span class="fn">step1_what_is_reference</span>() {
+    <span class="kw">let</span> s1 = String::from(<span class="st">"hello"</span>);
+    <span class="kw">let</span> r = &s1; <span class="co">// r is a REFERENCE to s1</span>
+
+    <span class="mc">println!</span>(<span class="st">"=== WHAT IS A REFERENCE ==="</span>);
+    <span class="mc">println!</span>(<span class="st">"STACK                              HEAP"</span>);
+    <span class="mc">println!</span>(<span class="st">"┌──────────────────────┐"</span>);
+    <span class="mc">println!</span>(<span class="st">"│ s1 @ {:p}  │"</span>, &s1 <span class="kw">as</span> *<span class="kw">const</span> String);
+    <span class="mc">println!</span>(<span class="st">"│  ptr  ──────────────┼──────► ┌──────────────────┐"</span>);
+    <span class="mc">println!</span>(<span class="st">"│  len  = {:&lt;13} │        │ {:p}   │"</span>, s1.len(), s1.as_ptr());
+    <span class="mc">println!</span>(<span class="st">"│  cap  = {:&lt;13} │        │ h e l l o        │"</span>, s1.capacity());
+    <span class="mc">println!</span>(<span class="st">"└──────────────────────┘        └──────────────────┘"</span>);
+
+    <span class="mc">println!</span>(<span class="st">"┌──────────────────────┐"</span>);
+    <span class="mc">println!</span>(<span class="st">"│ r  @ {:p}  │  (r itself lives on stack)"</span>, &r <span class="kw">as</span> *<span class="kw">const</span> &String);
+    <span class="mc">println!</span>(<span class="st">"│  value = {:p} ───────┼──────► points to s1 (above)"</span>, r);
+    <span class="mc">println!</span>(<span class="st">"└──────────────────────┘"</span>);
+
+    <span class="mc">println!</span>();
+    <span class="mc">println!</span>(<span class="st">"s1 still usable   : {}"</span>, s1); <span class="co">// ✅ s1 valid hai</span>
+    <span class="mc">println!</span>(<span class="st">"r usable too      : {}"</span>, r);  <span class="co">// ✅ r se bhi access ho raha</span>
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><code>&amp;r as *const &amp;String</code> prints the stack address of <code>r</code> itself — <code>r</code> is its own variable, occupying its own stack slot (8 bytes, a pointer).</li>
+        <li><code>r</code>'s <strong>value</strong> is the address of <code>s1</code> — i.e. <code>r</code> doesn't store "hello", it stores "where <code>s1</code> lives".</li>
+        <li>Both <code>s1</code> and <code>r</code> remain valid afterwards — borrowing never moves or invalidates the original.</li>
+        <li>This is the core mental model: a reference is a <strong>non-owning pointer with compiler-enforced lifetime guarantees</strong>.</li>
+      </ul>
+    </div>
+
+    <!-- MY EX 6: step2_borrow_in_function -->
+    <div class="code-note mine">
+      <span class="note-tag">USE CASE — MY EXAMPLE</span>
+      Pass <code>&amp;s1</code> into a function and print addresses <strong>inside</strong> the function — proves the function receives a reference to the <em>same</em> heap data, not a copy, and ownership returns to the caller untouched.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day01_my_borrow_in_function.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">IMMUTABLE BORROW</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="mc">#[allow(dead_code)]</span>
+<span class="kw">fn</span> <span class="fn">print_len</span>(s: &String) {
+    <span class="mc">println!</span>(<span class="st">"--- inside print_len() ---"</span>);
+    <span class="mc">println!</span>(<span class="st">"address of s (param) : {:p}"</span>, &s <span class="kw">as</span> *<span class="kw">const</span> &String);
+    <span class="mc">println!</span>(<span class="st">"s points to          : {:p}"</span>, s);          <span class="co">// same as &s1 in main</span>
+    <span class="mc">println!</span>(<span class="st">"s.as_ptr() (heap)    : {:p}"</span>, s.as_ptr());  <span class="co">// same heap as s1</span>
+    <span class="mc">println!</span>(<span class="st">"len via reference    : {}"</span>, s.len());
+}
+
+<span class="mc">#[allow(dead_code)]</span>
+<span class="kw">pub fn</span> <span class="fn">step2_borrow_in_function</span>() {
+    <span class="kw">let</span> s1 = String::from(<span class="st">"hello"</span>);
+
+    <span class="mc">println!</span>(<span class="st">"=== BEFORE FUNCTION CALL ==="</span>);
+    <span class="mc">println!</span>(<span class="st">"s1 @ {:p}"</span>, &s1 <span class="kw">as</span> *<span class="kw">const</span> String);
+    <span class="mc">println!</span>(<span class="st">"s1.as_ptr() = {:p}"</span>, s1.as_ptr());
+
+    <span class="fn">print_len</span>(&s1); <span class="co">// borrow — ownership NOT moved</span>
+
+    <span class="mc">println!</span>(<span class="st">"=== AFTER FUNCTION CALL ==="</span>);
+    <span class="mc">println!</span>(<span class="st">"s1 still usable: {}"</span>, s1); <span class="co">// ✅ s1 valid hai</span>
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><code>s.as_ptr()</code> inside <code>print_len</code> prints the <strong>exact same heap address</strong> as <code>s1.as_ptr()</code> in <code>main</code> — no data was duplicated when passing <code>&amp;s1</code>.</li>
+        <li><code>&amp;s as *const &amp;String</code> is the address of the <em>parameter</em> <code>s</code> itself — a fresh stack slot holding a pointer to <code>s1</code>.</li>
+        <li>After the call, <code>s1</code> is still printable in <code>main</code> — borrowing a function parameter never transfers ownership.</li>
+      </ul>
+    </div>
+
+    <!-- MY EX 7: step3_mutable_borrow -->
+    <div class="code-note mine">
+      <span class="note-tag">USE CASE — MY EXAMPLE</span>
+      Pass <code>&amp;mut s1</code> and call <code>.push_str()</code> inside the function — shows the heap pointer can <strong>stay the same or change</strong> (reallocation) depending on whether capacity was exceeded.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day01_my_mutable_borrow.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">MUTABLE BORROW</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="mc">#[allow(dead_code)]</span>
+<span class="kw">fn</span> <span class="fn">push_world</span>(s: &<span class="kw">mut</span> String) {
+    <span class="mc">println!</span>(<span class="st">"--- inside push_world() (BEFORE push) ---"</span>);
+    <span class="mc">println!</span>(<span class="st">"address of s (param) : {:p}"</span>, &s <span class="kw">as</span> *<span class="kw">const</span> &<span class="kw">mut</span> String);
+    <span class="mc">println!</span>(<span class="st">"s points to          : {:p}"</span>, s);
+    <span class="mc">println!</span>(<span class="st">"s.as_ptr() (heap)    : {:p}"</span>, s.as_ptr());
+    <span class="mc">println!</span>(<span class="st">"value via reference  : {}"</span>, s);
+
+    s.push_str(<span class="st">", world"</span>);
+
+    <span class="mc">println!</span>(<span class="st">"--- inside push_world() (AFTER push) ---"</span>);
+    <span class="mc">println!</span>(<span class="st">"s.as_ptr() (heap)    : {:p}"</span>, s.as_ptr()); <span class="co">// same ya different?</span>
+    <span class="mc">println!</span>(<span class="st">"value via reference  : {}"</span>, s);
+}
+
+<span class="mc">#[allow(dead_code)]</span>
+<span class="kw">pub fn</span> <span class="fn">step3_mutable_borrow</span>() {
+    <span class="kw">let mut</span> s1 = String::from(<span class="st">"hello"</span>);
+
+    <span class="mc">println!</span>(<span class="st">"=== BEFORE FUNCTION CALL ==="</span>);
+    <span class="mc">println!</span>(<span class="st">"s1 @ {:p}"</span>, &s1 <span class="kw">as</span> *<span class="kw">const</span> String);
+    <span class="mc">println!</span>(<span class="st">"s1.as_ptr() = {:p}"</span>, s1.as_ptr());
+    <span class="mc">println!</span>(<span class="st">"s1.capacity() = {}"</span>, s1.capacity());
+    <span class="mc">println!</span>(<span class="st">"value = {}"</span>, s1);
+
+    <span class="fn">push_world</span>(&<span class="kw">mut</span> s1); <span class="co">// mutable borrow</span>
+
+    <span class="mc">println!</span>(<span class="st">"=== AFTER FUNCTION CALL ==="</span>);
+    <span class="mc">println!</span>(<span class="st">"s1.as_ptr() = {:p}"</span>, s1.as_ptr());
+    <span class="mc">println!</span>(<span class="st">"s1.capacity() = {}"</span>, s1.capacity());
+    <span class="mc">println!</span>(<span class="st">"value = {}"</span>, s1); <span class="co">// ✅ s1 modified</span>
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><code>"hello"</code> has length 5 but <code>String::from</code> often allocates capacity 5 too — so <code>push_str(", world")</code> needs 12 bytes total, exceeding capacity.</li>
+        <li>When capacity is exceeded, Rust <strong>reallocates</strong> a bigger heap block, copies the old bytes over, frees the old block — so <code>s.as_ptr()</code> BEFORE and AFTER push can differ.</li>
+        <li>This is the hidden cost of <code>push_str</code>/<code>push</code> on a <code>String</code> that's at capacity — good to know for performance discussions (pre-allocate with <code>String::with_capacity()</code>).</li>
+        <li>Either way, the mutation is visible back in <code>main</code> through <code>s1</code> — <code>&amp;mut</code> gives exclusive write access to the same owner's data.</li>
+      </ul>
+    </div>
+
+    <!-- MY EX 8: step4_borrow_rule_violation -->
+    <div class="code-note mine">
+      <span class="note-tag">USE CASE — MY EXAMPLE</span>
+      Demonstrates <strong>Non-Lexical Lifetimes (NLL)</strong> — <code>r1</code> and <code>r2</code> are immutable borrows that are "dead" after their last use, so <code>r3 = &amp;mut s1</code> is allowed even though <code>r1</code>/<code>r2</code> are still in lexical scope.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day01_my_nll_borrow_rules.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">NLL DEMO</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="mc">#[allow(dead_code)]</span>
+<span class="kw">pub fn</span> <span class="fn">step4_borrow_rule_violation</span>() {
+    <span class="kw">let mut</span> s1 = String::from(<span class="st">"hello"</span>);
+
+    <span class="kw">let</span> r1 = &s1;       <span class="co">// immutable borrow #1</span>
+    <span class="kw">let</span> r2 = &s1;       <span class="co">// immutable borrow #2 — ✅ OK, multiple & allowed</span>
+    <span class="co">//  let r3 = &mut s1;   // mutable borrow — ❌ ERROR expected</span>
+
+    <span class="mc">println!</span>(<span class="st">"r1: {}, r2: {}"</span>, r1, r2);
+
+    <span class="kw">let</span> r3 = &<span class="kw">mut</span> s1;   <span class="co">// mutable borrow — will pass by NLL (Non-Lexical Lifetimes)</span>
+
+    r3.push_str(<span class="st">", world"</span>);
+    <span class="mc">println!</span>(<span class="st">"r3: {}"</span>, r3);
+    <span class="mc">println!</span>(<span class="st">"s1: {}"</span>, s1);
+
+    <span class="co">// let r3 = &mut s1; // ❌ ERROR expected
+    // r3.push_str(", world");
+    // println!("r1: {}, r3: {}", r1, r3);</span>
+
+    <span class="mc">println!</span>(<span class="st">"s1: {}"</span>, s1);
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><strong>Old Rust (pre-2018, lexical lifetimes):</strong> <code>r1</code> and <code>r2</code> would be considered "alive" until the end of the enclosing <code>{ }</code> block — so <code>r3 = &amp;mut s1</code> would be a hard error.</li>
+        <li><strong>NLL (current Rust):</strong> the borrow checker tracks the <em>actual last use</em> of <code>r1</code>/<code>r2</code> (the <code>println!</code> right after them). Once that line executes, their borrows end — <code>r3</code> can now safely take a mutable borrow.</li>
+        <li>This is why <code>println!("r1: {}, r2: {}", r1, r2);</code> must come <strong>before</strong> <code>let r3 = &amp;mut s1;</code> — reorder it after, and the compiler rejects it.</li>
+        <li>NLL makes Rust feel less restrictive without weakening the actual safety guarantee — it's a smarter scope analysis, not a relaxed rule.</li>
+      </ul>
+    </div>
+
+    <!-- MY EX 9: borrowing_reference_with_2_rules -->
+    <div class="code-note mine">
+      <span class="note-tag">USE CASE — MY EXAMPLE</span>
+      The two borrowing rules in one function: (1) many <code>&amp;T</code> OR one <code>&amp;mut T</code>, and (2) references must never <strong>dangle</strong> — <code>valid_ref</code> cannot escape the scope of the data it points to.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day01_my_two_borrow_rules.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">2 RULES DEMO</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="mc">#[allow(dead_code)]</span>
+<span class="kw">pub fn</span> <span class="fn">borrowing_reference_with_2_rules</span>() {
+
+    <span class="co">// ---- Rule 1: Many &T (immutable) OR one &mut T (mutable) at a time ----</span>
+    <span class="kw">let mut</span> s1 = String::from(<span class="st">"hello"</span>);
+
+    <span class="kw">let</span> r1 = &s1; <span class="co">// immutable borrow #1</span>
+    <span class="kw">let</span> r2 = &s1; <span class="co">// immutable borrow #2 -&gt; OK, multiple immutable refs allowed</span>
+    <span class="mc">println!</span>(<span class="st">"Rule 1: multiple immutable refs -&gt; r1 = {}, r2 = {}"</span>, r1, r2);
+    <span class="co">// r1, r2 are no longer used after this point (NLL marks them as dead)</span>
+
+    <span class="kw">let</span> r3 = &<span class="kw">mut</span> s1; <span class="co">// mutable borrow -&gt; OK now, since r1, r2 are dead</span>
+
+    r3.push_str(<span class="st">", world"</span>);
+    <span class="mc">println!</span>(<span class="st">"Rule 1: one mutable ref -&gt; r3 = {}"</span>, r3);
+
+    <span class="mc">println!</span>(<span class="st">"Rule 1: final value -&gt; s1 = {}"</span>, s1);
+
+    <span class="co">// ---- Rule 2: References must always be valid (no dangling references) ----</span>
+    <span class="kw">let</span> valid_ref;
+    {
+        <span class="kw">let</span> s4 = String::from(<span class="st">"inner"</span>);
+        valid_ref = &s4;
+        <span class="mc">println!</span>(<span class="st">"Rule 2: reference is valid inside this scope -&gt; {}"</span>, valid_ref);
+    } <span class="co">// s4 goes out of scope here -&gt; heap memory dropped/freed</span>
+    <span class="co">// println!("{}", valid_ref); // ❌ ERROR: s4 does not live long enough, valid_ref would dangle</span>
+
+    <span class="mc">println!</span>(<span class="st">"Rule 2: valid_ref cannot be used here, would be a dangling reference"</span>);
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><strong>Rule 1</strong> reuses the NLL pattern: <code>r1</code>/<code>r2</code> die after their <code>println!</code>, freeing <code>s1</code> up for a mutable borrow <code>r3</code>.</li>
+        <li><strong>Rule 2</strong> is the dangling-reference check: <code>valid_ref</code> is declared in the <em>outer</em> scope but assigned inside an <em>inner</em> scope to <code>&amp;s4</code>.</li>
+        <li>When the inner <code>{ }</code> ends, <code>s4</code> is dropped — if <code>valid_ref</code> were used afterward, it would point to <strong>freed heap memory</strong> (a dangling pointer / use-after-free).</li>
+        <li>The borrow checker rejects this at <strong>compile time</strong> with "<code>s4</code> does not live long enough" — this is lifetime analysis, the foundation for Day 02.</li>
+      </ul>
     </div>
   </div>
 
@@ -790,7 +1503,10 @@
     <div class="code-wrap" style="margin-top:24px;">
       <div class="code-header">
         <span class="code-filename">day01_advanced.rs — Rc + RefCell interior mutability</span>
-        <span class="code-lang">ADVANCED</span>
+        <div class="code-header-right">
+          <span class="code-lang">ADVANCED</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
       </div>
       <pre><span class="kw">use</span> std::cell::RefCell;
 <span class="kw">use</span> std::rc::Rc;
@@ -823,6 +1539,20 @@
 <script>
   function toggle(el) {
     el.parentElement.classList.toggle('open');
+  }
+
+  function copyCode(btn) {
+    const pre = btn.closest('.code-wrap').querySelector('pre');
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const original = btn.innerHTML;
+      btn.innerHTML = '✓ COPIED';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = original;
+        btn.classList.remove('copied');
+      }, 1500);
+    });
   }
 </script>
 </body>

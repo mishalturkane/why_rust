@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Day 02 — Lifetimes | Rust Job Prep</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:    #0a0a0a;
+      --gray-950: #111111;
+      --gray-900: #1a1a1a;
+      --gray-800: #242424;
+      --gray-700: #333333;
+      --gray-600: #4a4a4a;
+      --gray-400: #888888;
+      --gray-200: #cccccc;
+      --gray-100: #e8e8e8;
+      --white:    #f5f5f5;
+      --accent:   #ff4500;
+      --accent2:  #ff6a00;
+      --code-bg:  #161616;
+    }
+
+    html { scroll-behavior: smooth; scrollbar-width: none; }
+    html::-webkit-scrollbar { display: none; }
+
+    body {
+      background: var(--black);
+      color: var(--gray-200);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: var(--gray-950);
+      border-bottom: 1px solid var(--gray-700);
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 48px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--gray-400);
+    }
+    .topbar-left .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+    .topbar-left .path { color: var(--gray-400); }
+    .topbar-left .path span { color: var(--white); }
+    .topbar-right {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--gray-600);
+    }
+
+    /* ── DAY NAV ── */
+    .day-nav {
+      background: var(--gray-900);
+      border-bottom: 1px solid var(--gray-800);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .day-nav::-webkit-scrollbar { display: none; }
+    .day-nav-inner { display: flex; min-width: max-content; }
+    .day-nav-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--gray-600);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0 20px;
+      border-right: 1px solid var(--gray-800);
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .day-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--gray-600);
+      text-decoration: none;
+      padding: 10px 16px;
+      border-right: 1px solid var(--gray-800);
+      white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: background 0.12s, color 0.12s;
+      position: relative;
+    }
+    .day-link:hover { background: var(--gray-800); color: var(--white); }
+    .day-link.active { color: var(--white); background: var(--gray-800); }
+    .day-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+    }
+    .day-link.done { color: var(--green); }
+    .day-link.done::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--green);
+    }
+    .day-link .day-num { color: inherit; letter-spacing: 1px; }
+    .day-link .day-topic { font-size: 9px; color: var(--gray-600); font-weight: 400; }
+    .day-link.active .day-topic, .day-link:hover .day-topic { color: var(--gray-400); }
+    .day-link.done .day-topic { color: var(--green); opacity: 0.7; }
+
+    /* ── HERO ── */
+    .hero {
+      border-bottom: 1px solid var(--gray-800);
+      padding: 60px 40px 48px;
+      background: var(--gray-950);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: 'LIFETIMES';
+      position: absolute;
+      right: -20px;
+      top: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 120px;
+      font-weight: 800;
+      color: var(--gray-900);
+      letter-spacing: -4px;
+      pointer-events: none;
+      user-select: none;
+    }
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.1;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero-sub {
+      font-size: 14px;
+      color: var(--gray-400);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 32px;
+    }
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag {
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      color: var(--gray-400);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 4px 10px;
+      letter-spacing: 1px;
+    }
+    .tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* ── NAV PILLS ── */
+    .section-nav {
+      background: var(--gray-900);
+      border-bottom: 1px solid var(--gray-800);
+      padding: 0 40px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+    }
+    .section-nav a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      text-decoration: none;
+      padding: 14px 20px;
+      border-right: 1px solid var(--gray-800);
+      white-space: nowrap;
+      transition: color 0.15s, background 0.15s;
+    }
+    .section-nav a:hover { color: var(--white); background: var(--gray-800); }
+    .section-nav a:first-child { border-left: 1px solid var(--gray-800); }
+
+    /* ── LAYOUT ── */
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px 80px;
+    }
+
+    /* ── SECTION BLOCK ── */
+    .section {
+      border-bottom: 1px solid var(--gray-800);
+      padding: 52px 0;
+    }
+    .section:last-child { border-bottom: none; }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .section-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 2px;
+    }
+    .section-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.3px;
+    }
+    .divider { flex: 1; height: 1px; background: var(--gray-800); }
+
+    /* ── DEFINITION BOX ── */
+    .def-box {
+      background: var(--gray-900);
+      border-left: 3px solid var(--accent);
+      padding: 24px 28px;
+      margin-bottom: 24px;
+    }
+    .def-box p { color: var(--gray-200); font-size: 15px; line-height: 1.8; }
+    .def-box strong { color: var(--white); font-weight: 600; }
+
+    /* ── KEY RULES GRID ── */
+    .rules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--gray-800);
+      border: 1px solid var(--gray-800);
+      margin-top: 24px;
+    }
+    .rule-card {
+      background: var(--gray-900);
+      padding: 24px;
+    }
+    .rule-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .rule-card h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+    .rule-card p { font-size: 13px; color: var(--gray-400); line-height: 1.6; }
+
+    /* ── CODE BLOCK ── */
+    .code-wrap {
+      background: var(--code-bg);
+      border: 1px solid var(--gray-800);
+      margin: 24px 0;
+      overflow: hidden;
+    }
+    .code-header {
+      background: var(--gray-900);
+      border-bottom: 1px solid var(--gray-800);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .code-filename {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--gray-400);
+    }
+    .code-header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .code-lang {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .copy-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--gray-400);
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .copy-btn:hover { color: var(--white); border-color: var(--accent); }
+    .copy-btn.copied { color: #fff; background: var(--accent); border-color: var(--accent); }
+    pre {
+      padding: 24px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--gray-200);
+    }
+
+    /* ── CODE EXPLAINER (one-liner / underhood notes) ── */
+    .code-note {
+      background: var(--gray-900);
+      border: 1px solid var(--gray-800);
+      border-left: 3px solid var(--gray-600);
+      padding: 14px 20px;
+      margin: 24px 0 0;
+      font-size: 13px;
+      color: var(--gray-200);
+      line-height: 1.7;
+    }
+    .code-note.mine { border-left-color: var(--accent2); }
+    .code-note .note-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: var(--accent2);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .code-note strong { color: var(--white); }
+    .code-note code {
+      background: var(--gray-800);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 1px 6px;
+      color: var(--accent2);
+    }
+
+    /* underhood comment block under code */
+    .underhood {
+      background: #0d0d0d;
+      border: 1px solid var(--gray-800);
+      border-top: none;
+      padding: 16px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--gray-400);
+      line-height: 1.8;
+    }
+    .underhood .note-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: var(--accent2);
+      display: block;
+      margin-bottom: 8px;
+    }
+    .underhood li { list-style: none; padding-left: 16px; position: relative; margin-bottom: 4px; }
+    .underhood li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); }
+
+    /* sub-section heading inside Code section */
+    .subsec-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 40px 0 16px;
+    }
+    .subsec-heading .label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent2);
+      white-space: nowrap;
+    }
+    .subsec-heading .line { flex: 1; height: 1px; background: var(--gray-800); }
+
+    .kw  { color: #c792ea; }   /* keywords */
+    .ty  { color: #82aaff; }   /* types */
+    .st  { color: #c3e88d; }   /* strings */
+    .co  { color: #546e7a; font-style: italic; } /* comments */
+    .fn  { color: #82aaff; }   /* fn name */
+    .num { color: #f78c6c; }   /* numbers */
+    .mc  { color: #ff5370; }   /* macros */
+    .lt  { color: var(--accent2); font-weight: 700; } /* lifetime annotations */
+
+    /* ── PRODUCTION BOX ── */
+    .prod-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1px;
+      background: var(--gray-800);
+      border: 1px solid var(--gray-800);
+    }
+    .prod-card {
+      background: var(--gray-950);
+      padding: 24px;
+    }
+    .prod-card .icon {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    .prod-card h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .prod-card p { font-size: 13px; color: var(--gray-400); line-height: 1.6; }
+
+    /* ── QA BLOCK ── */
+    .qa-list { display: flex; flex-direction: column; gap: 2px; }
+    .qa-item {
+      background: var(--gray-900);
+      border: 1px solid var(--gray-800);
+    }
+    .qa-q {
+      padding: 18px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .qa-q:hover { background: var(--gray-800); }
+    .q-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent);
+      min-width: 18px;
+      margin-top: 1px;
+    }
+    .q-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--white);
+      flex: 1;
+    }
+    .qa-toggle {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--gray-600);
+      font-size: 16px;
+      transition: transform 0.2s;
+    }
+    .qa-a {
+      display: none;
+      padding: 0 24px 18px 56px;
+      font-size: 13.5px;
+      color: var(--gray-400);
+      line-height: 1.75;
+    }
+    .qa-item.open .qa-a { display: block; }
+    .qa-item.open .qa-toggle { transform: rotate(45deg); color: var(--accent); }
+    .qa-a code {
+      background: var(--gray-800);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 1px 6px;
+      color: var(--accent2);
+    }
+
+    /* ── ADVANCED TABLE ── */
+    .adv-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 20px;
+    }
+    .adv-table thead tr {
+      background: var(--gray-800);
+      border-bottom: 2px solid var(--accent);
+    }
+    .adv-table th {
+      padding: 12px 16px;
+      text-align: left;
+      color: var(--gray-400);
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .adv-table tbody tr {
+      border-bottom: 1px solid var(--gray-800);
+    }
+    .adv-table tbody tr:hover { background: var(--gray-900); }
+    .adv-table td {
+      padding: 14px 16px;
+      color: var(--gray-300);
+      vertical-align: top;
+      line-height: 1.6;
+    }
+    .adv-table td:first-child { color: var(--accent2); font-weight: 600; }
+
+    /* ── CHECKLIST ── */
+    .checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 13.5px;
+      color: var(--gray-400);
+    }
+    .check-item .chk {
+      width: 16px; height: 16px;
+      border: 1px solid var(--gray-600);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      font-size: 10px;
+      color: var(--accent);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      background: var(--gray-950);
+      border-top: 1px solid var(--gray-800);
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--gray-600);
+    }
+    .footer-next {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      padding: 8px 20px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 1px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    @media (max-width: 600px) {
+      .hero, .main, .topbar, .section-nav, .footer { padding-left: 20px; padding-right: 20px; }
+      .hero::before { font-size: 60px; }
+      .hero h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="dot"></span>
+    <span class="path">rust-job-prep / <span>phase-01</span> / <span>day-02.rs</span></span>
+  </div>
+  <div class="topbar-right">PHASE 01 &nbsp;|&nbsp; DAY 02 / 15</div>
+</div>
+<!-- ── TOPBAR ── -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-dot"></div>
+    <span class="topbar-path">rust-job-prep / <span>self-eval</span> / <span>index.html</span></span>
+  </div>
+  <div class="topbar-right">
+    <span>PHASE 01 · 15 DAYS</span>
+    <span class="score-badge" id="topbarScore">0 / 100</span>
+  </div>
+</div>
+
+<!-- ── DAY NAVIGATION ── -->
+<nav class="day-nav" aria-label="Day Navigation">
+  <div class="day-nav-inner">
+    <span class="day-nav-label">// PHASE 01</span>
+    <a href="index.html" class="day-link ">
+      <span class="day-num">HOME</span>
+      <span class="day-topic">eval</span>
+    </a>
+    <a href="day01/ibdex.html" class="day-link">
+      <span class="day-num">DAY 01</span>
+      <span class="day-topic">ownership</span>
+    </a>
+    <a href="/day02" class="day-link active">
+      <span class="day-num">DAY 02</span>
+      <span class="day-topic">lifetimes</span>
+    </a>
+    <a href="/day03" class="day-link">
+      <span class="day-num">DAY 03</span>
+      <span class="day-topic">traits</span>
+    </a>
+    <a href="day04.html" class="day-link">
+      <span class="day-num">DAY 04</span>
+      <span class="day-topic">error handling</span>
+    </a>
+    <a href="day05.html" class="day-link">
+      <span class="day-num">DAY 05</span>
+      <span class="day-topic">enums</span>
+    </a>
+    <a href="day06.html" class="day-link">
+      <span class="day-num">DAY 06</span>
+      <span class="day-topic">iterators</span>
+    </a>
+    <a href="day07.html" class="day-link">
+      <span class="day-num">DAY 07</span>
+      <span class="day-topic">async/await</span>
+    </a>
+    <a href="day08.html" class="day-link">
+      <span class="day-num">DAY 08</span>
+      <span class="day-topic">concurrency</span>
+    </a>
+    <a href="day09.html" class="day-link">
+      <span class="day-num">DAY 09</span>
+      <span class="day-topic">smart ptrs</span>
+    </a>
+    <a href="day10.html" class="day-link">
+      <span class="day-num">DAY 10</span>
+      <span class="day-topic">macros</span>
+    </a>
+    <a href="day11.html" class="day-link">
+      <span class="day-num">DAY 11</span>
+      <span class="day-topic">unsafe rust</span>
+    </a>
+    <a href="day12.html" class="day-link">
+      <span class="day-num">DAY 12</span>
+      <span class="day-topic">proc macros</span>
+    </a>
+    <a href="day13.html" class="day-link">
+      <span class="day-num">DAY 13</span>
+      <span class="day-topic">ffi</span>
+    </a>
+    <a href="day14.html" class="day-link">
+      <span class="day-num">DAY 14</span>
+      <span class="day-topic">mem layout</span>
+    </a>
+    <a href="day15.html" class="day-link">
+      <span class="day-num">DAY 15</span>
+      <span class="day-topic">testing</span>
+    </a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">// rust job ready series — phase 01: core rust</div>
+  <h1>Life<span>times</span></h1>
+  <div class="hero-sub">$ rustc day02.rs &nbsp;→&nbsp; how_long_can_a_reference_live</div>
+  <div class="hero-tags">
+    <span class="tag">Day 02</span>
+    <span class="tag active">'a</span>
+    <span class="tag">'static</span>
+    <span class="tag">elision rules</span>
+    <span class="tag">struct lifetimes</span>
+    <span class="tag">dangling refs</span>
+  </div>
+</div>
+
+<!-- SECTION NAV -->
+<nav class="section-nav">
+  <a href="#definition">Definition</a>
+  <a href="#rules">Rules</a>
+  <a href="#code">Code</a>
+  <a href="#production">Production</a>
+  <a href="#interview">Interview</a>
+  <a href="#advanced">Advanced</a>
+</nav>
+
+<div class="main">
+
+  <!-- ══ 01. DEFINITION ══ -->
+  <div class="section" id="definition">
+    <div class="section-label">
+      <span class="section-num">01</span>
+      <span class="section-title">Definition</span>
+      <span class="divider"></span>
+    </div>
+    <div class="def-box">
+      <p>
+        A <strong>lifetime</strong> is the scope for which a reference is guaranteed to be
+        <strong>valid</strong>. Every reference in Rust has a lifetime — most of the time it's
+        invisible because the compiler infers it. <strong>Lifetime annotations</strong>
+        (<code style="background:var(--gray-800);font-family:'JetBrains Mono',monospace;padding:1px 6px;color:#ff6a00">'a</code>)
+        don't change how long anything lives — they just describe the
+        <strong>relationships</strong> between the lifetimes of multiple references so the
+        borrow checker can verify none of them outlive the data they point to.
+      </p>
+    </div>
+    <div class="def-box" style="border-left-color: #555; margin-bottom:0;">
+      <p>
+        Think of it like this: ownership (Day 01) answers <strong>"who owns this data and when
+        does it get dropped?"</strong>. Lifetimes answer <strong>"how long is this reference
+        allowed to be used for, given when the data it points to gets dropped?"</strong>.
+        Lifetimes are a <strong>compile-time-only</strong> concept — they add zero runtime cost
+        and disappear completely from the compiled binary.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══ 02. THREE RULES ══ -->
+  <div class="section" id="rules">
+    <div class="section-label">
+      <span class="section-num">02</span>
+      <span class="section-title">The Three Rules — Lifetime Elision</span>
+      <span class="divider"></span>
+    </div>
+    <div class="def-box" style="margin-bottom: 24px;">
+      <p>
+        Most functions don't need explicit <code style="background:var(--gray-800);font-family:'JetBrains Mono',monospace;padding:1px 6px;color:#ff6a00">'a</code> annotations
+        because the compiler applies these <strong>3 elision rules</strong> automatically. If after
+        applying all three the compiler still can't figure out the lifetimes, <em>that's</em> when
+        you must annotate manually.
+      </p>
+    </div>
+    <div class="rules-grid">
+      <div class="rule-card">
+        <div class="rule-num">RULE 01</div>
+        <h4>Each Reference Param Gets Its Own Lifetime</h4>
+        <p>Every parameter that's a reference gets its own lifetime parameter. <code>fn foo(x: &str, y: &str)</code> becomes <code>fn foo&lt;'a,'b&gt;(x: &'a str, y: &'b str)</code> internally.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">RULE 02</div>
+        <h4>One Input → Output Gets That Lifetime</h4>
+        <p>If there's exactly <strong>one</strong> input lifetime, it's assigned to all output lifetimes. <code>fn foo(x: &str) -&gt; &str</code> becomes <code>fn foo&lt;'a&gt;(x: &'a str) -&gt; &'a str</code>.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">RULE 03</div>
+        <h4>&amp;self / &amp;mut self → Output Gets Its Lifetime</h4>
+        <p>If one of the params is <code>&amp;self</code> or <code>&amp;mut self</code> (a method), the lifetime of <code>self</code> is assigned to all output lifetimes — common in builder/getter methods.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 03. CODE ══ -->
+  <div class="section" id="code">
+    <div class="section-label">
+      <span class="section-num">03</span>
+      <span class="section-title">Code — scratch to advanced</span>
+      <span class="divider"></span>
+    </div>
+
+    <!-- STEP 1: dangling reference (the problem) -->
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      The classic <strong>"why do lifetimes exist"</strong> example — a function tries to return a reference to data it created internally. That data is dropped when the function ends, so the reference would dangle. This is exactly what lifetimes prevent.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day02_dangling_reference.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">COMPILE ERROR</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="kw">fn</span> <span class="fn">dangle</span>() -> &<span class="ty">String</span> {
+    <span class="kw">let</span> s = String::from(<span class="st">"hello"</span>); <span class="co">// s created here, owned by dangle()</span>
+    &s <span class="co">// ❌ ERROR: we return a reference to s...</span>
+} <span class="co">// ...but s is dropped HERE, at the end of the function!
+  // The reference we tried to return would point to freed memory.
+  // error[E0106]: missing lifetime specifier
+  // help: this function's return type contains a borrowed value
+  //       with no value for it to be borrowed from</span>
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="co">// let s = dangle(); // would be a dangling reference if this compiled</span>
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><code>s</code> is a local <code>String</code> — its owner is the <code>dangle</code> function's stack frame.</li>
+        <li>When <code>dangle()</code> returns, its stack frame is popped and <code>s</code>'s <code>Drop::drop()</code> runs — the heap memory holding <code>"hello"</code> is freed.</li>
+        <li>If Rust allowed <code>&amp;s</code> to be returned, the caller would hold a pointer to <strong>freed memory</strong> — a use-after-free bug, the exact thing C/C++ programs suffer from.</li>
+        <li>The fix: either return the <strong>owned</strong> <code>String</code> (move it out, no reference) — or accept a reference as input and return a reference tied to <em>that</em> input's lifetime (next example).</li>
+      </ul>
+    </div>
+
+    <!-- STEP 2: the fix - return owned value -->
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      The simplest fix to the dangling reference problem: <strong>return the owned value</strong> instead of a reference. Ownership of the <code>String</code> moves out to the caller — nothing dangles.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day02_fix_return_owned.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">FIXED</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="kw">fn</span> <span class="fn">no_dangle</span>() -> String {       <span class="co">// return type is OWNED String, not &String</span>
+    <span class="kw">let</span> s = String::from(<span class="st">"hello"</span>);
+    s <span class="co">// ✅ ownership MOVES out to the caller — s is not dropped</span>
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> result = <span class="fn">no_dangle</span>();
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, result); <span class="co">// ✅ "hello" — result owns the data now</span>
+}</pre>
+    </div>
+
+    <!-- STEP 3: function needing lifetime annotation -->
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      The textbook example for why <code>'a</code> exists: <code>longest</code> takes two string slices and returns whichever is longer. The compiler <strong>cannot</strong> know which one without help — Rule 02 (one input → output) doesn't apply because there are TWO input lifetimes.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day02_longest_lifetime.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">EXPLICIT 'a</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="co">// 'a says: the returned reference will live AT MOST as long as
+// the SHORTER of x's and y's lifetimes.</span>
+<span class="kw">fn</span> <span class="fn">longest</span><<span class="lt">'a</span>>(x: &<span class="lt">'a</span> <span class="ty">str</span>, y: &<span class="lt">'a</span> <span class="ty">str</span>) -> &<span class="lt">'a</span> <span class="ty">str</span> {
+    <span class="kw">if</span> x.len() > y.len() {
+        x
+    } <span class="kw">else</span> {
+        y
+    }
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> s1 = String::from(<span class="st">"long string is long"</span>);
+    <span class="kw">let</span> s2 = String::from(<span class="st">"short"</span>);
+
+    <span class="kw">let</span> result = <span class="fn">longest</span>(s1.as_str(), s2.as_str());
+    <span class="mc">println!</span>(<span class="st">"Longest string is: {}"</span>, result); <span class="co">// "long string is long"</span>
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><code>&lt;'a&gt;</code> declares a <strong>generic lifetime parameter</strong> — just like <code>&lt;T&gt;</code> declares a generic type parameter. It does NOT set a specific duration.</li>
+        <li><code>x: &amp;'a str, y: &amp;'a str</code> tells the compiler: "treat both inputs as if they live for the <strong>same</strong> region <code>'a</code>". In practice, Rust picks <code>'a</code> = the <strong>smaller (more restrictive)</strong> of the two actual lifetimes.</li>
+        <li><code>-&gt; &amp;'a str</code> means: "the returned reference's validity is tied to <code>'a</code>" — so the caller can't use the result longer than the shorter-lived of <code>s1</code>/<code>s2</code> would allow.</li>
+        <li>This is purely a <strong>compile-time contract</strong>. At runtime, <code>longest</code> just returns a pointer — no extra checks, no overhead.</li>
+      </ul>
+    </div>
+
+    <!-- STEP 4: what happens if you violate it -->
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      Now break it on purpose — call <code>longest</code> where one argument's owner is dropped before the result is used. This shows the borrow checker <strong>actually enforcing</strong> the <code>'a</code> contract from the previous example.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day02_lifetime_violation.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">COMPILE ERROR</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="kw">fn</span> <span class="fn">longest</span><<span class="lt">'a</span>>(x: &<span class="lt">'a</span> <span class="ty">str</span>, y: &<span class="lt">'a</span> <span class="ty">str</span>) -> &<span class="lt">'a</span> <span class="ty">str</span> {
+    <span class="kw">if</span> x.len() > y.len() { x } <span class="kw">else</span> { y }
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> s1 = String::from(<span class="st">"long string is long"</span>);
+    <span class="kw">let</span> result;
+    {
+        <span class="kw">let</span> s2 = String::from(<span class="st">"short"</span>); <span class="co">// s2 lives only in this inner scope</span>
+        result = <span class="fn">longest</span>(s1.as_str(), s2.as_str());
+    } <span class="co">// s2 dropped here</span>
+    <span class="co">// 'a was forced to shrink to s2's lifetime (the shorter one)
+    // so `result` is only valid INSIDE the block above.</span>
+    <span class="mc">println!</span>(<span class="st">"Longest string is: {}"</span>, result);
+    <span class="co">// ❌ ERROR: `s2` does not live long enough
+    // `result` may still borrow from `s2`, but `s2` is already dropped</span>
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li>Because both params share lifetime <code>'a</code>, the compiler must pick a single <code>'a</code> that's valid for <strong>both</strong> <code>s1</code> and <code>s2</code> — that's the <strong>smaller</strong> scope, i.e. the inner block where <code>s2</code> lives.</li>
+        <li><code>result</code> therefore inherits that shrunk <code>'a</code> — it's only valid <strong>inside</strong> the inner <code>{ }</code> block, regardless of which branch (<code>x</code> or <code>y</code>) actually gets returned at runtime.</li>
+        <li>The compiler doesn't know <em>at compile time</em> which branch wins (that depends on <code>.len()</code> at runtime) — so it conservatively assumes <code>result</code> could be borrowing from <code>s2</code>, and rejects the <code>println!</code> outside the block.</li>
+        <li>This is the borrow checker trading a little flexibility for a 100% guarantee: no dangling references, ever, in safe Rust.</li>
+      </ul>
+    </div>
+
+    <!-- ══════════ STRUCTS WITH LIFETIMES ══════════ -->
+    <div class="subsec-heading">
+      <span class="label">// structs that hold references</span>
+      <span class="line"></span>
+    </div>
+
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      A struct that <strong>borrows</strong> data instead of owning it — common for "view" types (parsers, tokenizers) that slice into a larger string without copying. The struct's lifetime <code>'a</code> says: <strong>"I cannot outlive the data I'm pointing into."</strong>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day02_struct_with_lifetime.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">STRUCT 'a</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="co">// ExcerptHolder borrows a &str — it does NOT own the string data.
+// 'a ties the struct's lifetime to the lifetime of that borrowed &str.</span>
+<span class="kw">struct</span> <span class="ty">ExcerptHolder</span><<span class="lt">'a</span>> {
+    part: &<span class="lt">'a</span> <span class="ty">str</span>,
+}
+
+<span class="kw">impl</span><<span class="lt">'a</span>> <span class="ty">ExcerptHolder</span><<span class="lt">'a</span>> {
+    <span class="co">// Rule 3 (elision): &self's lifetime is assigned to the output</span>
+    <span class="kw">fn</span> <span class="fn">announce_and_return_part</span>(&self, announcement: &<span class="ty">str</span>) -> &<span class="ty">str</span> {
+        <span class="mc">println!</span>(<span class="st">"Attention please: {}"</span>, announcement);
+        self.part
+    }
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> novel = String::from(<span class="st">"Call me Ishmael. Some years ago..."</span>);
+    <span class="kw">let</span> first_sentence = novel.split(<span class="st">'.'</span>).next().expect(<span class="st">"no '.' found"</span>);
+
+    <span class="kw">let</span> excerpt = <span class="ty">ExcerptHolder</span> { part: first_sentence };
+    <span class="co">// `excerpt` cannot outlive `novel` — enforced at compile time</span>
+
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, excerpt.part); <span class="co">// "Call me Ishmael"</span>
+    <span class="kw">let</span> _ = excerpt.announce_and_return_part(<span class="st">"New excerpt!"</span>);
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><code>part: &amp;'a str</code> means the struct doesn't own its string data — it's a "view" into <code>novel</code>'s heap allocation, just like the <code>&amp;str</code> from Day 01's slices.</li>
+        <li><code>'a</code> on the struct means: <strong>any instance of <code>ExcerptHolder</code> cannot live longer than the data <code>part</code> points to</strong>. If <code>novel</code> is dropped while <code>excerpt</code> still exists, that's a compile error.</li>
+        <li><code>impl&lt;'a&gt; ExcerptHolder&lt;'a&gt;</code> — you must declare <code>'a</code> on the <code>impl</code> block too, matching the struct's definition.</li>
+        <li>Rule 3 (elision) applies in <code>announce_and_return_part</code>: because <code>&amp;self</code> is a parameter, its lifetime is assigned to the output <code>&amp;str</code> — no explicit annotation needed.</li>
+        <li>This pattern is everywhere in real code: JSON parsers, tokenizers, and config readers that avoid allocating new strings by borrowing slices of the original input.</li>
+      </ul>
+    </div>
+
+    <!-- ══════════ 'static ══════════ -->
+    <div class="subsec-heading">
+      <span class="label">// the 'static lifetime</span>
+      <span class="line"></span>
+    </div>
+
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      <code>'static</code> is a <strong>special lifetime</strong> meaning "this reference can live for the entire duration of the program". String literals are <code>'static</code> by default because they're baked directly into the compiled binary.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day02_static_lifetime.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">'static</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="co">// String literals are &'static str — baked into the binary's read-only data segment</span>
+    <span class="kw">let</span> s: &<span class="lt">'static</span> <span class="ty">str</span> = <span class="st">"I live for the whole program"</span>;
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, s);
+
+    <span class="co">// A function that returns a 'static reference</span>
+    <span class="kw">fn</span> <span class="fn">get_app_name</span>() -> &<span class="lt">'static</span> <span class="ty">str</span> {
+        <span class="st">"rust-job-prep"</span> <span class="co">// literal — always valid, no owner to drop</span>
+    }
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, <span class="fn">get_app_name</span>());
+}
+
+<span class="co">// ⚠️  COMMON MISTAKE: 'static does NOT mean "leak memory" or "live forever
+// no matter what". It means "CAN live that long if needed" — for owned data
+// like Box<T>, you'd need Box::leak() to actually get a 'static reference,
+// which intentionally leaks memory. Don't reach for 'static to "fix" a
+// lifetime error — it usually means restructuring ownership instead.</span></pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li>String literals (<code>"..."</code>) are embedded in the binary's <strong>read-only data section</strong> — they exist before <code>main()</code> runs and after it ends, so a reference to them is trivially valid for <code>'static</code>.</li>
+        <li><code>'static</code> is the <strong>longest possible lifetime</strong> — any <code>'a</code> can be a subset of <code>'static</code>, but not the reverse.</li>
+        <li>Beginners often add <code>'static</code> to "fix" a borrow-checker error — this usually just moves the error elsewhere or forces unnecessary heap leaks via <code>Box::leak</code> / <code>Box::new(...).into()</code> tricks. Treat a <code>'static</code> requirement as a signal to re-check ownership design.</li>
+      </ul>
+    </div>
+
+    <!-- ══════════ MULTIPLE LIFETIMES + WHERE CLAUSE ══════════ -->
+    <div class="subsec-heading">
+      <span class="label">// multiple lifetimes &amp; bounds</span>
+      <span class="line"></span>
+    </div>
+
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      When two references genuinely have <strong>different</strong> lifetimes that shouldn't be tied together, use <strong>separate lifetime parameters</strong> (<code>'a</code>, <code>'b</code>) instead of forcing them to be equal — this gives the caller more flexibility.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day02_multiple_lifetimes.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">'a + 'b</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="co">// 'a and 'b are INDEPENDENT — x and y can have totally different lifetimes.
+// The output only depends on 'a (x's lifetime), so 'b has no constraint
+// on the bound 'a: 'b means "'a must outlive 'b" — used when needed.</span>
+<span class="kw">fn</span> <span class="fn">first_word_with_logger</span><<span class="lt">'a</span>, <span class="lt">'b</span>>(text: &<span class="lt">'a</span> <span class="ty">str</span>, logger_tag: &<span class="lt">'b</span> <span class="ty">str</span>) -> &<span class="lt">'a</span> <span class="ty">str</span> {
+    <span class="mc">println!</span>(<span class="st">"[{}] processing text..."</span>, logger_tag); <span class="co">// 'b only used here</span>
+
+    <span class="kw">match</span> text.find(<span class="st">' '</span>) {
+        Some(idx) => &text[..idx],
+        <span class="kw">None</span> => text,
+    }
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> sentence = String::from(<span class="st">"lifetimes are not that scary"</span>);
+    <span class="kw">let</span> word;
+    {
+        <span class="kw">let</span> tag = String::from(<span class="st">"PARSER"</span>); <span class="co">// short-lived 'b</span>
+        word = <span class="fn">first_word_with_logger</span>(&sentence, &tag);
+    } <span class="co">// tag dropped here — but `word` is fine, it only borrows from `sentence` ('a)</span>
+
+    <span class="mc">println!</span>(<span class="st">"first word: {}"</span>, word); <span class="co">// ✅ "lifetimes" — still valid!</span>
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li>Compare this to the earlier <code>longest</code> example — there, forcing <code>x</code> and <code>y</code> to share <code>'a</code> caused the output to be artificially restricted by the shorter-lived argument.</li>
+        <li>Here, <code>logger_tag: &amp;'b str</code> has its <strong>own independent lifetime</strong>. The return type <code>&amp;'a str</code> only depends on <code>'a</code> (from <code>text</code>) — so <code>'b</code> can end early (when <code>tag</code> is dropped) without affecting <code>word</code>.</li>
+        <li>This is the practical lesson: <strong>only tie lifetimes together if the output genuinely depends on both</strong>. Over-constraining with a single <code>'a</code> for everything is a common beginner mistake that causes unnecessary borrow errors.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══ 04. WHY PRODUCTION ══ -->
+  <div class="section" id="production">
+    <div class="section-label">
+      <span class="section-num">04</span>
+      <span class="section-title">Why We Use It in Production</span>
+      <span class="divider"></span>
+    </div>
+    <div class="prod-grid">
+      <div class="prod-card">
+        <div class="icon">🚫</div>
+        <h4>Zero-Copy Parsing</h4>
+        <p>Parsers (JSON, HTTP, config files) hold <code>&amp;'a str</code> slices into the original input buffer instead of allocating new <code>String</code>s for every token — massive performance win on hot paths.</p>
+      </div>
+      <div class="prod-card">
+        <div class="icon">⚡</div>
+        <h4>Compile-Time Memory Safety</h4>
+        <p>Lifetimes are how Rust guarantees no dangling pointers <strong>without</strong> a garbage collector or runtime checks — the safety analysis happens entirely before the binary is built.</p>
+      </div>
+      <div class="prod-card">
+        <div class="icon">🔒</div>
+        <h4>Safe Borrowing Across Function Boundaries</h4>
+        <p>Lifetime annotations let APIs express "this returned reference is only valid as long as you keep this input alive" — callers get compile errors instead of production crashes.</p>
+      </div>
+      <div class="prod-card">
+        <div class="icon">🔧</div>
+        <h4>Self-Referential Async State Machines</h4>
+        <p><code>async fn</code> bodies desugar into structs that often borrow their own fields across <code>.await</code> points — the compiler's lifetime + <code>Pin</code> machinery makes this safe.</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 24px; background: var(--gray-900); border: 1px solid var(--gray-800); padding: 20px 24px;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--accent); letter-spacing:2px; margin-bottom:12px;">REAL-WORLD USAGE</div>
+      <div class="checklist">
+        <div class="check-item"><span class="chk">→</span><span><strong style="color:var(--white)">serde_json / simd-json</strong> — deserializers can borrow string slices directly from the input buffer via <code>&amp;'a str</code> fields, avoiding allocation per field</span></div>
+        <div class="check-item"><span class="chk">→</span><span><strong style="color:var(--white)">nom (parser combinators)</strong> — entire parsing libraries are built around <code>&amp;'a [u8]</code> / <code>&amp;'a str</code> input slices threaded through every combinator</span></div>
+        <div class="check-item"><span class="chk">→</span><span><strong style="color:var(--white)">tokio / hyper</strong> — HTTP header parsing borrows from the raw request buffer with carefully bounded lifetimes for zero-copy networking</span></div>
+        <div class="check-item"><span class="chk">→</span><span><strong style="color:var(--white)">ripgrep</strong> — searches file contents using borrowed byte slices end-to-end; lifetimes ensure matches never outlive the mapped file</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 05. INTERVIEW Q&A ══ -->
+  <div class="section" id="interview">
+    <div class="section-label">
+      <span class="section-num">05</span>
+      <span class="section-title">Interview Q&amp;A — Job Ready</span>
+      <span class="divider"></span>
+    </div>
+    <div class="qa-list">
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q1</span>
+          <span class="q-text">What is a lifetime, and does it change how long a value lives?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          A lifetime is a <strong>compile-time-only</strong> annotation describing the scope for which a reference is valid. It does <strong>not</strong> change how long any value actually lives in memory — actual lifetimes are determined by ownership and scope (Day 01). Lifetime annotations just give the borrow checker enough information to <em>verify</em> that references never outlive their data. They are erased entirely before/during compilation and add zero runtime cost.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q2</span>
+          <span class="q-text">What are the three lifetime elision rules?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          <strong style="color:var(--white)">Rule 1</strong>: each reference parameter gets its own implicit lifetime.<br/><br/>
+          <strong style="color:var(--white)">Rule 2</strong>: if there's exactly one input lifetime, it's assigned to all output lifetimes.<br/><br/>
+          <strong style="color:var(--white)">Rule 3</strong>: if one parameter is <code>&amp;self</code> or <code>&amp;mut self</code>, its lifetime is assigned to all outputs.<br/><br/>
+          If these three rules don't fully determine the lifetimes (e.g. two reference params and no <code>self</code>, with a reference return type), the compiler requires explicit <code>'a</code> annotations.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q3</span>
+          <span class="q-text">What does <code>fn longest&lt;'a&gt;(x: &amp;'a str, y: &amp;'a str) -&gt; &amp;'a str</code> actually guarantee?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          It guarantees that the returned reference's lifetime is <strong>no longer than the smaller (more restrictive) of <code>x</code>'s and <code>y</code>'s lifetimes</strong>. It does NOT mean <code>x</code> and <code>y</code> must have identical actual lifetimes — the compiler just picks <code>'a</code> as the intersection (smaller) of the two when checking the call site. This is why the result can become invalid as soon as the shorter-lived argument is dropped, even if the function actually returned the longer-lived one.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q4</span>
+          <span class="q-text">What does <code>'static</code> mean, and is it ever a "fix" for a lifetime error?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          <code>'static</code> means a reference is valid for the <strong>entire remaining duration of the program</strong> — the longest possible lifetime. String literals are <code>&amp;'static str</code> because they're embedded in the binary's read-only data.<br/><br/>
+          It is rarely the correct "fix" for a lifetime error. Slapping <code>'static</code> on a type often just <strong>moves the problem</strong> (now you need a <code>'static</code> value to satisfy it) or forces a memory leak via <code>Box::leak</code>. The right fix is almost always to restructure ownership — e.g. clone the data, use an owned type, or adjust the struct's lifetime parameters.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q5</span>
+          <span class="q-text">Why would a struct need a lifetime parameter, e.g. <code>struct Excerpt&lt;'a&gt; { part: &amp;'a str }</code>?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          Because the struct holds a <strong>reference</strong> (<code>&amp;'a str</code>) instead of an owned value (<code>String</code>). The lifetime parameter <code>'a</code> ties the struct's own validity to the validity of the data it borrows — any instance of <code>Excerpt&lt;'a&gt;</code> cannot outlive the string it points into. This is the foundation of zero-copy data structures: parsers, tokenizers, and views into buffers that avoid allocating owned copies.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q6</span>
+          <span class="q-text">When would you use two separate lifetimes (<code>'a</code>, <code>'b</code>) instead of one?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          Use separate lifetimes when two references are <strong>logically independent</strong> and the output only depends on one of them. Forcing both parameters to share a single <code>'a</code> over-constrains the function — the output's lifetime gets unnecessarily tied to whichever input has the shorter lifetime, even if the returned value never actually borrows from it. Splitting into <code>'a</code> and <code>'b</code> (and optionally adding a bound like <code>'a: 'b</code> if one must outlive the other) gives callers more flexibility and avoids spurious borrow-checker errors.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ 06. ADVANCED ══ -->
+  <div class="section" id="advanced">
+    <div class="section-label">
+      <span class="section-num">06</span>
+      <span class="section-title">Advanced Usage — Where Lifetimes Get Deep</span>
+      <span class="divider"></span>
+    </div>
+    <table class="adv-table">
+      <thead>
+        <tr>
+          <th>Pattern</th>
+          <th>What It Solves</th>
+          <th>Used In</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Higher-Ranked Trait Bounds (HRTB)<br/><code>for&lt;'a&gt; Fn(&amp;'a T)</code></td>
+          <td>Express "this closure must work for <em>any</em> lifetime <code>'a</code>", not just one fixed lifetime — needed when a trait method's input lifetime varies per call.</td>
+          <td>Iterator combinators, callback-based APIs, <code>fn</code> trait bounds</td>
+        </tr>
+        <tr>
+          <td>Lifetime subtyping<br/><code>'a: 'b</code></td>
+          <td>"<code>'a</code> outlives <code>'b</code>" — used in <code>where</code> clauses when one reference must remain valid for at least as long as another.</td>
+          <td>Self-referential builder patterns, generic struct constraints</td>
+        </tr>
+        <tr>
+          <td><code>Cow&lt;'a, str&gt;</code></td>
+          <td>Combines lifetimes with ownership: borrow (<code>&amp;'a str</code>) when possible, clone to <code>String</code> only when mutation is needed. Avoids unnecessary allocation.</td>
+          <td>Config/template processing, string normalization in parsers</td>
+        </tr>
+        <tr>
+          <td>Lifetime in trait objects<br/><code>Box&lt;dyn Trait + 'a&gt;</code></td>
+          <td>Trait objects normally default to <code>'static</code> — annotate explicitly when a <code>dyn Trait</code> needs to borrow data with a shorter lifetime.</td>
+          <td>Plugin systems, callback registries holding borrowed closures</td>
+        </tr>
+        <tr>
+          <td>Self-referential structs via <code>Pin</code></td>
+          <td>Async <code>fn</code> bodies generate structs whose fields can reference other fields in the same struct — normal lifetimes can't express this; <code>Pin</code> + the generated state machine handle it.</td>
+          <td>tokio async tasks, futures combinators</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="code-wrap" style="margin-top:24px;">
+      <div class="code-header">
+        <span class="code-filename">day02_advanced.rs — Cow&lt;'a, str&gt; (borrow or own)</span>
+        <div class="code-header-right">
+          <span class="code-lang">ADVANCED</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="kw">use</span> std::borrow::Cow;
+
+<span class="co">// Returns a borrowed slice if no change is needed, or an owned String
+// only when mutation is actually required — avoids unnecessary allocation.</span>
+<span class="kw">fn</span> <span class="fn">normalize</span><<span class="lt">'a</span>>(input: &<span class="lt">'a</span> <span class="ty">str</span>) -> Cow<<span class="lt">'a</span>, <span class="ty">str</span>> {
+    <span class="kw">if</span> input.contains(<span class="st">' '</span>) {
+        Cow::Owned(input.replace(<span class="st">' '</span>, <span class="st">"_"</span>)) <span class="co">// allocates a new String</span>
+    } <span class="kw">else</span> {
+        Cow::Borrowed(input) <span class="co">// zero allocation — just a reference</span>
+    }
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> a = <span class="fn">normalize</span>(<span class="st">"already_clean"</span>);  <span class="co">// Cow::Borrowed — no allocation</span>
+    <span class="kw">let</span> b = <span class="fn">normalize</span>(<span class="st">"needs spaces"</span>);  <span class="co">// Cow::Owned — one allocation</span>
+
+    <span class="mc">println!</span>(<span class="st">"{} | {}"</span>, a, b); <span class="co">// "already_clean | needs_spaces"</span>
+
+    <span class="co">// HRTB example: a closure that must accept &T for ANY lifetime 'a
+    // — common in iterator/visitor-style APIs</span>
+    <span class="kw">fn</span> <span class="fn">apply_to_all</span><F>(items: &[<span class="ty">String</span>], f: F)
+    <span class="kw">where</span>
+        F: <span class="kw">for</span><<span class="lt">'a</span>> Fn(&<span class="lt">'a</span> <span class="ty">String</span>) -> <span class="ty">usize</span>,
+    {
+        <span class="kw">for</span> item <span class="kw">in</span> items {
+            <span class="mc">println!</span>(<span class="st">"len = {}"</span>, f(item));
+        }
+    }
+    <span class="fn">apply_to_all</span>(&[String::from(<span class="st">"a"</span>), String::from(<span class="st">"bb"</span>)], |s| s.len());
+}</pre>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- FOOTER -->
+<div class="footer">
+  <span>// phase-01 &nbsp;·&nbsp; day-02 of 15 &nbsp;·&nbsp; lifetimes ✓</span>
+  <span style="color: var(--gray-700)">day-03 → traits &amp; generics</span>
+</div>
+
+<script>
+  function toggle(el) {
+    el.parentElement.classList.toggle('open');
+  }
+
+  function copyCode(btn) {
+    const pre = btn.closest('.code-wrap').querySelector('pre');
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const original = btn.innerHTML;
+      btn.innerHTML = '✓ COPIED';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = original;
+        btn.classList.remove('copied');
+      }, 1500);
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Day 03 — Traits & Generics | Rust Job Prep</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:    #0a0a0a;
+      --gray-950: #111111;
+      --gray-900: #1a1a1a;
+      --gray-800: #242424;
+      --gray-700: #333333;
+      --gray-600: #4a4a4a;
+      --gray-400: #888888;
+      --gray-200: #cccccc;
+      --gray-100: #e8e8e8;
+      --white:    #f5f5f5;
+      --accent:   #ff4500;
+      --accent2:  #ff6a00;
+      --green:    #22c55e;
+      --code-bg:  #161616;
+    }
+
+    html { scroll-behavior: smooth; scrollbar-width: none; }
+    html::-webkit-scrollbar { display: none; }
+
+    body {
+      background: var(--black);
+      color: var(--gray-200);
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      min-height: 100vh;
+      scrollbar-width: none;
+    }
+    body::-webkit-scrollbar { display: none; }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: var(--gray-950);
+      border-bottom: 1px solid var(--gray-700);
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 48px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--gray-400);
+    }
+    .topbar-dot { width: 8px; height: 8px; background: var(--accent); flex-shrink: 0; }
+    .topbar-left .path { color: var(--gray-400); }
+    .topbar-left .path span { color: var(--white); }
+    .topbar-right {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--gray-600);
+    }
+
+    /* ── DAY NAV ── */
+    .day-nav {
+      background: var(--gray-900);
+      border-bottom: 1px solid var(--gray-800);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .day-nav::-webkit-scrollbar { display: none; }
+    .day-nav-inner { display: flex; min-width: max-content; }
+    .day-nav-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--gray-600);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0 20px;
+      border-right: 1px solid var(--gray-800);
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .day-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--gray-600);
+      text-decoration: none;
+      padding: 10px 16px;
+      border-right: 1px solid var(--gray-800);
+      white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: background 0.12s, color 0.12s;
+      position: relative;
+    }
+    .day-link:hover { background: var(--gray-800); color: var(--white); }
+    .day-link.active { color: var(--white); background: var(--gray-800); }
+    .day-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+    }
+    .day-link.done { color: var(--green); }
+    .day-link.done::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--green);
+    }
+    .day-link .day-num { color: inherit; letter-spacing: 1px; }
+    .day-link .day-topic { font-size: 9px; color: var(--gray-600); font-weight: 400; }
+    .day-link.active .day-topic, .day-link:hover .day-topic { color: var(--gray-400); }
+    .day-link.done .day-topic { color: var(--green); opacity: 0.7; }
+
+    /* ── HERO ── */
+    .hero {
+      border-bottom: 1px solid var(--gray-800);
+      padding: 60px 40px 48px;
+      background: var(--gray-950);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: 'TRAITS';
+      position: absolute;
+      right: -20px;
+      top: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 120px;
+      font-weight: 800;
+      color: var(--gray-900);
+      letter-spacing: -4px;
+      pointer-events: none;
+      user-select: none;
+    }
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.1;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero-sub {
+      font-size: 14px;
+      color: var(--gray-400);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 32px;
+    }
+    .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      color: var(--gray-400);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 4px 10px;
+      letter-spacing: 1px;
+    }
+    .tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* ── SECTION NAV ── */
+    .section-nav {
+      background: var(--gray-900);
+      border-bottom: 1px solid var(--gray-800);
+      padding: 0 40px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .section-nav::-webkit-scrollbar { display: none; }
+    .section-nav a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      text-decoration: none;
+      padding: 14px 20px;
+      border-right: 1px solid var(--gray-800);
+      white-space: nowrap;
+      transition: color 0.15s, background 0.15s;
+    }
+    .section-nav a:hover { color: var(--white); background: var(--gray-800); }
+    .section-nav a:first-child { border-left: 1px solid var(--gray-800); }
+
+    /* ── LAYOUT ── */
+    .main { max-width: 1100px; margin: 0 auto; padding: 0 40px 80px; }
+
+    /* ── SECTION BLOCK ── */
+    .section { border-bottom: 1px solid var(--gray-800); padding: 52px 0; }
+    .section:last-child { border-bottom: none; }
+
+    .section-label { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .section-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 2px;
+    }
+    .section-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.3px;
+    }
+    .divider { flex: 1; height: 1px; background: var(--gray-800); }
+
+    /* ── DEFINITION BOX ── */
+    .def-box {
+      background: var(--gray-900);
+      border-left: 3px solid var(--accent);
+      padding: 24px 28px;
+      margin-bottom: 24px;
+    }
+    .def-box p { color: var(--gray-200); font-size: 15px; line-height: 1.8; }
+    .def-box strong { color: var(--white); font-weight: 600; }
+    .def-box code {
+      background: var(--gray-800);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      padding: 1px 6px;
+      color: var(--accent2);
+    }
+
+    /* ── RULES GRID ── */
+    .rules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--gray-800);
+      border: 1px solid var(--gray-800);
+      margin-top: 24px;
+    }
+    .rule-card { background: var(--gray-900); padding: 24px; }
+    .rule-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .rule-card h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+    .rule-card p { font-size: 13px; color: var(--gray-400); line-height: 1.6; }
+    .rule-card code {
+      background: var(--gray-800);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 1px 5px;
+      color: var(--accent2);
+    }
+
+    /* ── CODE BLOCK ── */
+    .code-wrap {
+      background: var(--code-bg);
+      border: 1px solid var(--gray-800);
+      margin: 24px 0;
+      overflow: hidden;
+    }
+    .code-header {
+      background: var(--gray-900);
+      border-bottom: 1px solid var(--gray-800);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .code-filename { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--gray-400); }
+    .code-header-right { display: flex; align-items: center; gap: 10px; }
+    .code-lang {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .copy-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--gray-400);
+      background: var(--gray-800);
+      border: 1px solid var(--gray-700);
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .copy-btn:hover { color: var(--white); border-color: var(--accent); }
+    .copy-btn.copied { color: #fff; background: var(--accent); border-color: var(--accent); }
+
+    pre {
+      padding: 24px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--gray-200);
+      scrollbar-width: none;
+    }
+    pre::-webkit-scrollbar { display: none; }
+
+    /* syntax colors */
+    .kw  { color: #c792ea; }
+    .ty  { color: #82aaff; }
+    .st  { color: #c3e88d; }
+    .co  { color: #546e7a; font-style: italic; }
+    .fn  { color: #82aaff; }
+    .tr  { color: #ffcb6b; }   /* trait names */
+    .num { color: #f78c6c; }
+    .mc  { color: #ff5370; }
+    .lt  { color: var(--accent2); font-weight: 700; }
+
+    /* ── CODE NOTE (one-liner above example) ── */
+    .code-note {
+      background: var(--gray-900);
+      border: 1px solid var(--gray-800);
+      border-left: 3px solid var(--gray-600);
+      padding: 14px 20px;
+      margin: 24px 0 0;
+      font-size: 13px;
+      color: var(--gray-200);
+      line-height: 1.7;
+    }
+    .code-note.mine { border-left-color: var(--accent2); }
+    .code-note .note-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: var(--accent2);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .code-note strong { color: var(--white); }
+    .code-note code {
+      background: var(--gray-800);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 1px 6px;
+      color: var(--accent2);
+    }
+
+    /* ── UNDER THE HOOD ── */
+    .underhood {
+      background: #0d0d0d;
+      border: 1px solid var(--gray-800);
+      border-top: none;
+      padding: 16px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--gray-400);
+      line-height: 1.8;
+    }
+    .underhood .note-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: var(--accent2);
+      display: block;
+      margin-bottom: 8px;
+    }
+    .underhood li { list-style: none; padding-left: 16px; position: relative; margin-bottom: 4px; }
+    .underhood li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); }
+
+    /* ── SUB-SECTION HEADING ── */
+    .subsec-heading { display: flex; align-items: center; gap: 12px; margin: 44px 0 16px; }
+    .subsec-heading .label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent2);
+      white-space: nowrap;
+    }
+    .subsec-heading .line { flex: 1; height: 1px; background: var(--gray-800); }
+
+    /* ── PRODUCTION GRID ── */
+    .prod-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1px;
+      background: var(--gray-800);
+      border: 1px solid var(--gray-800);
+    }
+    .prod-card { background: var(--gray-950); padding: 24px; }
+    .prod-card .icon { font-size: 20px; margin-bottom: 10px; }
+    .prod-card h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .prod-card p { font-size: 13px; color: var(--gray-400); line-height: 1.6; }
+
+    /* ── CHECKLIST ── */
+    .checklist { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+    .check-item { display: flex; align-items: flex-start; gap: 12px; font-size: 13.5px; color: var(--gray-400); }
+    .check-item .chk {
+      width: 16px; height: 16px;
+      border: 1px solid var(--gray-600);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      font-size: 10px;
+      color: var(--accent);
+    }
+
+    /* ── QA BLOCK ── */
+    .qa-list { display: flex; flex-direction: column; gap: 2px; }
+    .qa-item { background: var(--gray-900); border: 1px solid var(--gray-800); }
+    .qa-q {
+      padding: 18px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .qa-q:hover { background: var(--gray-800); }
+    .q-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent);
+      min-width: 18px;
+      margin-top: 1px;
+    }
+    .q-text { font-size: 14px; font-weight: 600; color: var(--white); flex: 1; }
+    .qa-toggle {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--gray-600);
+      font-size: 16px;
+      transition: transform 0.2s;
+    }
+    .qa-a {
+      display: none;
+      padding: 0 24px 18px 56px;
+      font-size: 13.5px;
+      color: var(--gray-400);
+      line-height: 1.75;
+    }
+    .qa-item.open .qa-a { display: block; }
+    .qa-item.open .qa-toggle { transform: rotate(45deg); color: var(--accent); }
+    .qa-a code {
+      background: var(--gray-800);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 1px 6px;
+      color: var(--accent2);
+    }
+
+    /* ── ADVANCED TABLE ── */
+    .adv-table { width: 100%; border-collapse: collapse; font-size: 13px; font-family: 'JetBrains Mono', monospace; margin-top: 20px; }
+    .adv-table thead tr { background: var(--gray-800); border-bottom: 2px solid var(--accent); }
+    .adv-table th { padding: 12px 16px; text-align: left; color: var(--gray-400); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
+    .adv-table tbody tr { border-bottom: 1px solid var(--gray-800); }
+    .adv-table tbody tr:hover { background: var(--gray-900); }
+    .adv-table td { padding: 14px 16px; color: var(--gray-300); vertical-align: top; line-height: 1.6; }
+    .adv-table td:first-child { color: var(--accent2); font-weight: 600; }
+
+    /* ── FOOTER ── */
+    .footer {
+      background: var(--gray-950);
+      border-top: 1px solid var(--gray-800);
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--gray-600);
+    }
+    .footer-links { display: flex; flex-direction: column; gap: 6px; }
+    .footer-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--gray-400);
+      text-decoration: none;
+      border: 1px solid var(--gray-800);
+      padding: 6px 12px;
+      transition: border-color 0.12s, color 0.12s;
+    }
+    .footer-link:hover { border-color: var(--accent); color: var(--white); }
+    .footer-next {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      padding: 8px 20px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 1px;
+      text-decoration: none;
+    }
+
+    @media (max-width: 600px) {
+      .hero, .main, .topbar, .section-nav, .footer { padding-left: 20px; padding-right: 20px; }
+      .hero::before { font-size: 60px; }
+      .hero h1 { font-size: 28px; }
+      .day-nav-label { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── TOPBAR ── -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-dot"></div>
+    <span class="path">rust-job-prep / <span>phase-01</span> / <span>day-03.rs</span></span>
+  </div>
+  <div class="topbar-right">PHASE 01 &nbsp;|&nbsp; DAY 03 / 15</div>
+</div>
+
+<!-- ── DAY NAVIGATION ── -->
+<nav class="day-nav" aria-label="Day Navigation">
+  <div class="day-nav-inner">
+    <span class="day-nav-label">// PHASE 01</span>
+    <a href="/" class="day-link">
+      <span class="day-num">HOME</span>
+      <span class="day-topic">eval</span>
+    </a>
+    <a href="/day01" class="day-link done">
+      <span class="day-num">DAY 01</span>
+      <span class="day-topic">ownership</span>
+    </a>
+    <a href="/day02" class="day-link done">
+      <span class="day-num">DAY 02</span>
+      <span class="day-topic">lifetimes</span>
+    </a>
+    <a href="/day03" class="day-link active">
+      <span class="day-num">DAY 03</span>
+      <span class="day-topic">traits</span>
+    </a>
+    <a href="/day04" class="day-link">
+      <span class="day-num">DAY 04</span>
+      <span class="day-topic">error handling</span>
+    </a>
+    <a href="/day05" class="day-link">
+      <span class="day-num">DAY 05</span>
+      <span class="day-topic">enums</span>
+    </a>
+    <a href="/day06" class="day-link">
+      <span class="day-num">DAY 06</span>
+      <span class="day-topic">iterators</span>
+    </a>
+    <a href="/day07" class="day-link">
+      <span class="day-num">DAY 07</span>
+      <span class="day-topic">async/await</span>
+    </a>
+    <a href="/day08" class="day-link">
+      <span class="day-num">DAY 08</span>
+      <span class="day-topic">concurrency</span>
+    </a>
+    <a href="/day09" class="day-link">
+      <span class="day-num">DAY 09</span>
+      <span class="day-topic">smart ptrs</span>
+    </a>
+    <a href="/day10" class="day-link">
+      <span class="day-num">DAY 10</span>
+      <span class="day-topic">macros</span>
+    </a>
+    <a href="/day11" class="day-link">
+      <span class="day-num">DAY 11</span>
+      <span class="day-topic">unsafe rust</span>
+    </a>
+    <a href="/day12" class="day-link">
+      <span class="day-num">DAY 12</span>
+      <span class="day-topic">proc macros</span>
+    </a>
+    <a href="/day13" class="day-link">
+      <span class="day-num">DAY 13</span>
+      <span class="day-topic">ffi</span>
+    </a>
+    <a href="/day14" class="day-link">
+      <span class="day-num">DAY 14</span>
+      <span class="day-topic">mem layout</span>
+    </a>
+    <a href="/day15" class="day-link">
+      <span class="day-num">DAY 15</span>
+      <span class="day-topic">testing</span>
+    </a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-eyebrow">// rust job ready series — phase 01: core rust</div>
+  <h1>Traits &amp;<br/><span>Generics</span></h1>
+  <div class="hero-sub">$ rustc day03.rs &nbsp;→&nbsp; zero_cost_abstractions_at_compile_time</div>
+  <div class="hero-tags">
+    <span class="tag">Day 03</span>
+    <span class="tag active">impl Trait</span>
+    <span class="tag">dyn Trait</span>
+    <span class="tag">where clauses</span>
+    <span class="tag">generics</span>
+    <span class="tag">trait bounds</span>
+    <span class="tag">monomorphization</span>
+  </div>
+</div>
+
+<!-- ── SECTION NAV ── -->
+<nav class="section-nav">
+  <a href="#definition">Definition</a>
+  <a href="#rules">Key Concepts</a>
+  <a href="#code">Code</a>
+  <a href="#production">Production</a>
+  <a href="#interview">Interview</a>
+  <a href="#advanced">Advanced</a>
+</nav>
+
+<div class="main">
+
+  <!-- ══ 01. DEFINITION ══ -->
+  <div class="section" id="definition">
+    <div class="section-label">
+      <span class="section-num">01</span>
+      <span class="section-title">Definition</span>
+      <span class="divider"></span>
+    </div>
+    <div class="def-box">
+      <p>
+        A <strong>trait</strong> defines a set of methods that a type must implement — it's Rust's
+        version of an interface or abstract class. Traits are how Rust achieves
+        <strong>polymorphism</strong>: the same function can work on any type that satisfies a
+        set of trait requirements, without runtime overhead.
+      </p>
+    </div>
+    <div class="def-box" style="border-left-color:#555;">
+      <p>
+        <strong>Generics</strong> let you write code that works for <em>any type</em> that meets
+        specific constraints (trait bounds). The compiler <strong>monomorphizes</strong> generic
+        code — it generates a separate, concrete version for every type you actually use — so
+        the runtime binary contains zero abstraction overhead. Think of it as
+        <strong>"copy-paste by the compiler, paid once at compile time."</strong>
+      </p>
+    </div>
+    <div class="def-box" style="border-left-color:var(--accent2); margin-bottom:0;">
+      <p>
+        The two ways to use traits in function signatures:
+        <code>impl Trait</code> (static dispatch — monomorphized, zero cost, return type must be one concrete type)
+        vs <code>dyn Trait</code> (dynamic dispatch — vtable at runtime, allows heterogeneous
+        collections, small runtime cost). Knowing when to pick which is a key mid-level skill.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══ 02. KEY CONCEPTS ══ -->
+  <div class="section" id="rules">
+    <div class="section-label">
+      <span class="section-num">02</span>
+      <span class="section-title">Key Concepts — The Mental Model</span>
+      <span class="divider"></span>
+    </div>
+    <div class="rules-grid">
+      <div class="rule-card">
+        <div class="rule-num">CONCEPT 01</div>
+        <h4>Trait Definition & impl</h4>
+        <p>A trait declares what a type <em>must be able to do</em>. You implement it with <code>impl MyTrait for MyType</code>. Multiple types can implement the same trait — that's polymorphism.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">CONCEPT 02</div>
+        <h4>impl Trait — Static Dispatch</h4>
+        <p>Used in function params (<code>fn foo(x: impl Trait)</code>) or return position (<code>fn foo() -> impl Trait</code>). The compiler resolves the exact type at compile time — <strong>zero runtime cost</strong>. Return type must be a single concrete type.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">CONCEPT 03</div>
+        <h4>dyn Trait — Dynamic Dispatch</h4>
+        <p>Pointer to a vtable at runtime (<code>Box&lt;dyn Trait&gt;</code>, <code>&amp;dyn Trait</code>). Allows <strong>heterogeneous collections</strong> — different concrete types behind the same pointer. Small overhead: one extra pointer indirection per call.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">CONCEPT 04</div>
+        <h4>where Clauses</h4>
+        <p>Move trait bounds out of the angle brackets into a separate <code>where</code> block for readability. Necessary when bounds get complex or reference associated types: <code>where T: Clone + Debug, T::Item: Send</code>.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">CONCEPT 05</div>
+        <h4>Default Method Implementations</h4>
+        <p>Traits can provide default implementations for methods — implementors can override them or use the default. This is how Rust avoids abstract base classes and gives you free behaviour for new types.</p>
+      </div>
+      <div class="rule-card">
+        <div class="rule-num">CONCEPT 06</div>
+        <h4>Trait Objects Must Be Object-Safe</h4>
+        <p>Not all traits can become <code>dyn Trait</code>. A trait is object-safe if its methods don't use <code>Self</code> by value or have generic type parameters — because the vtable must have a fixed layout for any concrete type.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 03. CODE ══ -->
+  <div class="section" id="code">
+    <div class="section-label">
+      <span class="section-num">03</span>
+      <span class="section-title">Code — scratch to advanced</span>
+      <span class="divider"></span>
+    </div>
+
+    <!-- EX 1: define a trait -->
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      The most basic building block: <strong>defining a trait and implementing it on multiple types</strong>. This is how Rust achieves polymorphism — any function that accepts <code>impl Greet</code> works with all types that implement it.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day03_define_trait.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">TRAIT BASICS</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="co">// Define a trait — like an interface in other languages</span>
+<span class="kw">trait</span> <span class="tr">Greet</span> {
+    <span class="kw">fn</span> <span class="fn">name</span>(&self) -> &<span class="ty">str</span>;
+
+    <span class="co">// Default implementation — free for any implementor</span>
+    <span class="kw">fn</span> <span class="fn">hello</span>(&self) {
+        <span class="mc">println!</span>(<span class="st">"Hello, my name is {}!"</span>, self.<span class="fn">name</span>());
+    }
+}
+
+<span class="kw">struct</span> <span class="ty">Human</span> { name: <span class="ty">String</span> }
+<span class="kw">struct</span> <span class="ty">Robot</span>  { model: <span class="ty">String</span> }
+
+<span class="kw">impl</span> <span class="tr">Greet</span> <span class="kw">for</span> <span class="ty">Human</span> {
+    <span class="kw">fn</span> <span class="fn">name</span>(&self) -> &<span class="ty">str</span> { &self.name }
+    <span class="co">// `hello` — uses the default implementation above</span>
+}
+
+<span class="kw">impl</span> <span class="tr">Greet</span> <span class="kw">for</span> <span class="ty">Robot</span> {
+    <span class="kw">fn</span> <span class="fn">name</span>(&self) -> &<span class="ty">str</span> { &self.model }
+    <span class="co">// Override default for robots</span>
+    <span class="kw">fn</span> <span class="fn">hello</span>(&self) {
+        <span class="mc">println!</span>(<span class="st">"BEEP. Designation: {}. BOOP."</span>, self.<span class="fn">name</span>());
+    }
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> h = <span class="ty">Human</span> { name: String::from(<span class="st">"Mishal"</span>) };
+    <span class="kw">let</span> r = <span class="ty">Robot</span>  { model: String::from(<span class="st">"R2-D2"</span>)  };
+
+    h.<span class="fn">hello</span>(); <span class="co">// "Hello, my name is Mishal!"  (default)</span>
+    r.<span class="fn">hello</span>(); <span class="co">// "BEEP. Designation: R2-D2. BOOP."  (overridden)</span>
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li>The trait definition generates a <strong>vtable shape</strong> — a list of function signatures that any implementor must fill.</li>
+        <li>Default method implementations are just Rust code inside the trait body — the compiler pastes them into the implementing type if it doesn't override them. There's no virtual dispatch happening here at the trait level; default methods are resolved statically if called on a concrete type.</li>
+        <li><code>impl Greet for Human</code> — Rust checks at compile time that every <strong>required</strong> method (those with no default) is implemented. Missing one = compile error.</li>
+        <li>At this stage, no vtable is used — calling <code>h.hello()</code> on a concrete <code>Human</code> is a direct function call, fully inlined by the optimizer if it wants to.</li>
+      </ul>
+    </div>
+
+    <!-- EX 2: generic function with trait bound -->
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      <strong>Generics + trait bounds</strong> — write one function that works for <em>any type</em> implementing <code>Greet</code>. At compile time the compiler stamps out a separate version for each concrete type used — this is <strong>monomorphization</strong>.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day03_generic_function.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">GENERICS</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="co">// Generic function — T must implement Greet</span>
+<span class="kw">fn</span> <span class="fn">introduce</span>&lt;T: <span class="tr">Greet</span>&gt;(entity: &T) {
+    <span class="mc">println!</span>(<span class="st">"Introducing: {}"</span>, entity.<span class="fn">name</span>());
+    entity.<span class="fn">hello</span>();
+}
+
+<span class="co">// Multiple trait bounds with + syntax</span>
+<span class="kw">use</span> std::fmt::Debug;
+
+<span class="kw">fn</span> <span class="fn">introduce_and_debug</span>&lt;T: <span class="tr">Greet</span> + <span class="tr">Debug</span>&gt;(entity: &T) {
+    entity.<span class="fn">hello</span>();
+    <span class="mc">println!</span>(<span class="st">"Debug view: {:?}"</span>, entity);
+}
+
+<span class="co">// Same thing using WHERE CLAUSE — easier to read with many bounds</span>
+<span class="kw">fn</span> <span class="fn">introduce_where</span>&lt;T&gt;(entity: &T)
+<span class="kw">where</span>
+    T: <span class="tr">Greet</span> + <span class="tr">Debug</span>,
+{
+    entity.<span class="fn">hello</span>();
+    <span class="mc">println!</span>(<span class="st">"Debug: {:?}"</span>, entity);
+}
+
+<span class="mc">#[derive(Debug)]</span>
+<span class="kw">struct</span> <span class="ty">Human</span> { name: <span class="ty">String</span> }
+<span class="kw">impl</span> <span class="tr">Greet</span> <span class="kw">for</span> <span class="ty">Human</span> {
+    <span class="kw">fn</span> <span class="fn">name</span>(&self) -> &<span class="ty">str</span> { &self.name }
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> h = <span class="ty">Human</span> { name: String::from(<span class="st">"Mishal"</span>) };
+    <span class="fn">introduce</span>(&h);
+    <span class="fn">introduce_where</span>(&h);
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><strong>Monomorphization</strong>: <code>introduce::&lt;Human&gt;</code> and <code>introduce::&lt;Robot&gt;</code> are compiled into <strong>two separate functions</strong> in the binary. Each call site knows the exact type at compile time — no indirection, no vtable lookup.</li>
+        <li>This is why generics are called "zero-cost abstractions" — the abstraction only exists in source code; the compiled output is as efficient as if you had written separate functions by hand.</li>
+        <li>Trade-off: monomorphization can increase binary size (code bloat) if you use many different concrete types. This is why <code>dyn Trait</code> exists — one function body, multiple types.</li>
+        <li><code>T: Greet + Debug</code> is a <strong>compound trait bound</strong>: T must satisfy both traits simultaneously. <code>where</code> is purely ergonomic — same semantics, just more readable when bounds are long.</li>
+      </ul>
+    </div>
+
+    <!-- EX 3: impl Trait syntax -->
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      <code>impl Trait</code> in both <strong>parameter position</strong> (syntactic sugar for a generic bound) and <strong>return position</strong> (tell the caller "you'll get something that implements this trait" without naming the concrete type — essential for returning closures and iterators).
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day03_impl_trait.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">impl Trait</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="kw">use</span> std::fmt::Display;
+
+<span class="co">// PARAMETER position — same as fn foo&lt;T: Display&gt;(val: T)</span>
+<span class="co">// Difference: with impl Trait here, each param gets its OWN anonymous type.
+// fn foo(a: impl Display, b: impl Display) could be two DIFFERENT types.</span>
+<span class="kw">fn</span> <span class="fn">print_value</span>(val: <span class="kw">impl</span> <span class="tr">Display</span>) {
+    <span class="mc">println!</span>(<span class="st">"Value: {}"</span>, val);
+}
+
+<span class="co">// RETURN position — "I return something that impl Display, but won't tell you what type"
+// Compiler knows the concrete type and optimises it — static dispatch</span>
+<span class="kw">fn</span> <span class="fn">make_greeting</span>(name: &<span class="ty">str</span>) -> <span class="kw">impl</span> <span class="tr">Display</span> {
+    <span class="mc">format!</span>(<span class="st">"Hello, {}!"</span>, name) <span class="co">// returns String, but caller sees `impl Display`</span>
+}
+
+<span class="co">// KEY USE CASE: returning closures — closures have unique unnameable types</span>
+<span class="kw">fn</span> <span class="fn">make_adder</span>(x: <span class="ty">i32</span>) -> <span class="kw">impl</span> Fn(<span class="ty">i32</span>) -> <span class="ty">i32</span> {
+    <span class="kw">move</span> |y| x + y  <span class="co">// the closure captures x — its type is unnameable</span>
+}
+
+<span class="co">// KEY USE CASE: returning iterators — iterator types are deeply nested</span>
+<span class="kw">fn</span> <span class="fn">evens_up_to</span>(n: <span class="ty">u32</span>) -> <span class="kw">impl</span> Iterator&lt;Item = <span class="ty">u32</span>&gt; {
+    (<span class="num">0</span>..=n).filter(|x| x % <span class="num">2</span> == <span class="num">0</span>)
+    <span class="co">// actual type: Filter&lt;RangeInclusive&lt;u32&gt;, [closure]&gt; — you don't want to type this</span>
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="fn">print_value</span>(<span class="num">42</span>);
+    <span class="fn">print_value</span>(<span class="st">"hello"</span>);
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, <span class="fn">make_greeting</span>(<span class="st">"Mishal"</span>));
+
+    <span class="kw">let</span> add5 = <span class="fn">make_adder</span>(<span class="num">5</span>);
+    <span class="mc">println!</span>(<span class="st">"5 + 3 = {}"</span>, <span class="fn">add5</span>(<span class="num">3</span>));
+
+    <span class="kw">let</span> evens: <span class="ty">Vec</span>&lt;_&gt; = <span class="fn">evens_up_to</span>(<span class="num">10</span>).collect();
+    <span class="mc">println!</span>(<span class="st">"{:?}"</span>, evens); <span class="co">// [0, 2, 4, 6, 8, 10]</span>
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><strong>Parameter position:</strong> <code>fn foo(a: impl Display, b: impl Display)</code> — <code>a</code> and <code>b</code> can be <em>different</em> concrete types. In contrast, <code>fn foo&lt;T: Display&gt;(a: T, b: T)</code> requires both to be the <em>same</em> type.</li>
+        <li><strong>Return position:</strong> the compiler knows the concrete type at compile time and monomorphizes the call — zero overhead. The caller just can't name the type (useful for closures and complex iterator chains).</li>
+        <li>Closures have unique anonymous types (like <code>[closure@src/main.rs:20:5]</code>) that you cannot write in source code — <code>impl Fn(...)</code> is the only way to return them from a regular function.</li>
+        <li>If you need to return <strong>different concrete types</strong> depending on a runtime condition, <code>impl Trait</code> doesn't work — that's when you need <code>Box&lt;dyn Trait&gt;</code>.</li>
+      </ul>
+    </div>
+
+    <!-- EX 4: dyn Trait -->
+    <div class="code-note">
+      <span class="note-tag">USE CASE</span>
+      <code>dyn Trait</code> enables <strong>runtime polymorphism</strong> — store different concrete types behind the same pointer, decided at runtime. The classic use case: a heterogeneous <code>Vec&lt;Box&lt;dyn Trait&gt;&gt;</code> holding mixed types.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day03_dyn_trait.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">dyn Trait</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="kw">trait</span> <span class="tr">Shape</span> {
+    <span class="kw">fn</span> <span class="fn">area</span>(&self) -> <span class="ty">f64</span>;
+    <span class="kw">fn</span> <span class="fn">name</span>(&self) -> &<span class="ty">str</span>;
+}
+
+<span class="kw">struct</span> <span class="ty">Circle</span> { radius: <span class="ty">f64</span> }
+<span class="kw">struct</span> <span class="ty">Rectangle</span> { width: <span class="ty">f64</span>, height: <span class="ty">f64</span> }
+
+<span class="kw">impl</span> <span class="tr">Shape</span> <span class="kw">for</span> <span class="ty">Circle</span> {
+    <span class="kw">fn</span> <span class="fn">area</span>(&self)   -> <span class="ty">f64</span>  { std::f64::consts::PI * self.radius * self.radius }
+    <span class="kw">fn</span> <span class="fn">name</span>(&self)   -> &<span class="ty">str</span>  { <span class="st">"Circle"</span> }
+}
+<span class="kw">impl</span> <span class="tr">Shape</span> <span class="kw">for</span> <span class="ty">Rectangle</span> {
+    <span class="kw">fn</span> <span class="fn">area</span>(&self)   -> <span class="ty">f64</span>  { self.width * self.height }
+    <span class="kw">fn</span> <span class="fn">name</span>(&self)   -> &<span class="ty">str</span>  { <span class="st">"Rectangle"</span> }
+}
+
+<span class="co">// `shapes` holds DIFFERENT types — impossible with generics alone
+// Box&lt;dyn Shape&gt; is a fat pointer: (data ptr, vtable ptr)</span>
+<span class="kw">fn</span> <span class="fn">print_shapes</span>(shapes: &[Box&lt;<span class="kw">dyn</span> <span class="tr">Shape</span>&gt;]) {
+    <span class="kw">for</span> shape <span class="kw">in</span> shapes {
+        <span class="mc">println!</span>(<span class="st">"{}: area = {:.2}"</span>, shape.<span class="fn">name</span>(), shape.<span class="fn">area</span>());
+    }
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> shapes: <span class="ty">Vec</span>&lt;Box&lt;<span class="kw">dyn</span> <span class="tr">Shape</span>&gt;&gt; = <span class="mc">vec!</span>[
+        Box::new(<span class="ty">Circle</span>    { radius: <span class="num">3.0</span>             }),
+        Box::new(<span class="ty">Rectangle</span> { width: <span class="num">4.0</span>, height: <span class="num">5.0</span> }),
+        Box::new(<span class="ty">Circle</span>    { radius: <span class="num">1.5</span>             }),
+    ];
+
+    <span class="fn">print_shapes</span>(&shapes);
+    <span class="co">// Circle:    area = 28.27
+    // Rectangle: area = 20.00
+    // Circle:    area = 7.07</span>
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><code>Box&lt;dyn Shape&gt;</code> is a <strong>fat pointer</strong> — two machine words: one pointing to the heap-allocated data, one pointing to a <strong>vtable</strong> (a table of function pointers for that concrete type's trait implementations).</li>
+        <li>When you call <code>shape.area()</code>, Rust looks up the function pointer in the vtable at runtime — one extra pointer indirection per call. This is the "dynamic" in dynamic dispatch.</li>
+        <li>The vtable is generated once per (type, trait) combination and stored in the binary's read-only data — not per instance. Each <code>Box&lt;dyn Shape&gt;</code> carries a <em>pointer to</em> the vtable, not a copy of it.</li>
+        <li><strong>When to pick <code>dyn</code> over <code>impl</code>:</strong> when you need heterogeneous types in the same collection, when the concrete type is unknown until runtime (e.g. plugin systems), or when you want a single function body instead of monomorphized copies for every type.</li>
+      </ul>
+    </div>
+
+    <!-- ══ MY OWN EXAMPLES ══ -->
+    <div class="subsec-heading">
+      <span class="label">// my own examples — seeing it clearly</span>
+      <span class="line"></span>
+    </div>
+
+    <!-- MY EX 1: impl vs dyn comparison side-by-side -->
+    <div class="code-note mine">
+      <span class="note-tag">USE CASE — MY EXAMPLE</span>
+      The clearest side-by-side comparison: same task done with <strong><code>impl Trait</code> (static)</strong> and <strong><code>dyn Trait</code> (dynamic)</strong>. Shows exactly what each compiles to and when one breaks.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day03_my_impl_vs_dyn.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">impl vs dyn</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="kw">trait</span> <span class="tr">Speak</span> {
+    <span class="kw">fn</span> <span class="fn">speak</span>(&self) -> <span class="ty">String</span>;
+}
+
+<span class="kw">struct</span> <span class="ty">Dog</span>;
+<span class="kw">struct</span> <span class="ty">Cat</span>;
+<span class="kw">impl</span> <span class="tr">Speak</span> <span class="kw">for</span> <span class="ty">Dog</span> { <span class="kw">fn</span> <span class="fn">speak</span>(&self) -> <span class="ty">String</span> { <span class="st">"Woof!"</span>.into() } }
+<span class="kw">impl</span> <span class="tr">Speak</span> <span class="kw">for</span> <span class="ty">Cat</span> { <span class="kw">fn</span> <span class="fn">speak</span>(&self) -> <span class="ty">String</span> { <span class="st">"Meow!"</span>.into() } }
+
+<span class="co">// --- impl Trait (static dispatch) ---
+// Compiler generates: fn static_speak_Dog, fn static_speak_Cat
+// Zero runtime overhead. ONE concrete type per call.</span>
+<span class="kw">fn</span> <span class="fn">static_speak</span>(animal: &<span class="kw">impl</span> <span class="tr">Speak</span>) {
+    <span class="mc">println!</span>(<span class="st">"[static]  {}"</span>, animal.<span class="fn">speak</span>());
+}
+
+<span class="co">// --- dyn Trait (dynamic dispatch) ---
+// ONE function body, handles ANY Speak type at runtime via vtable.
+// Slight overhead per call — but allows heterogeneous collections.</span>
+<span class="kw">fn</span> <span class="fn">dynamic_speak</span>(animal: &<span class="kw">dyn</span> <span class="tr">Speak</span>) {
+    <span class="mc">println!</span>(<span class="st">"[dynamic] {}"</span>, animal.<span class="fn">speak</span>());
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> dog = <span class="ty">Dog</span>;
+    <span class="kw">let</span> cat = <span class="ty">Cat</span>;
+
+    <span class="co">// static: fast, type known at compile time</span>
+    <span class="fn">static_speak</span>(&dog); <span class="co">// [static]  Woof!</span>
+    <span class="fn">static_speak</span>(&cat); <span class="co">// [static]  Meow!</span>
+
+    <span class="co">// dynamic: heterogeneous Vec possible</span>
+    <span class="kw">let</span> animals: <span class="ty">Vec</span>&lt;&<span class="kw">dyn</span> <span class="tr">Speak</span>&gt; = <span class="mc">vec!</span>[&dog, &cat];
+    <span class="kw">for</span> a <span class="kw">in</span> &animals {
+        <span class="fn">dynamic_speak</span>(*a);
+    }
+    <span class="co">// [dynamic] Woof!
+    // [dynamic] Meow!</span>
+
+    <span class="co">// ❌ This would NOT compile with impl Trait in return position
+    //    if we want different types based on runtime condition:
+    // fn pick_animal(is_dog: bool) -> impl Speak {
+    //     if is_dog { Dog } else { Cat }  // ❌ ERROR: mismatched types
+    // }
+
+    <span class="co">// ✅ Use Box&lt;dyn Speak&gt; instead:</span>
+    <span class="kw">fn</span> <span class="fn">pick_animal</span>(is_dog: <span class="ty">bool</span>) -> Box&lt;<span class="kw">dyn</span> <span class="tr">Speak</span>&gt; {
+        <span class="kw">if</span> is_dog { Box::new(<span class="ty">Dog</span>) } <span class="kw">else</span> { Box::new(<span class="ty">Cat</span>) }
+    }
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, <span class="fn">pick_animal</span>(<span class="kw">true</span>).<span class="fn">speak</span>()); <span class="co">// Woof!</span>
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><code>static_speak(&amp;dog)</code> resolves to a call to <code>Dog::speak</code> at compile time — the optimizer can even <strong>inline</strong> it completely.</li>
+        <li><code>dynamic_speak(&amp;dog)</code> at the call site: (1) the reference is widened into a fat pointer <code>(&amp;Dog data, &amp;Dog's Speak vtable)</code>; (2) inside the function, <code>animal.speak()</code> does a vtable lookup: read function pointer from <code>vtable[0]</code>, call it with the data pointer as <code>&amp;self</code>.</li>
+        <li>The <code>pick_animal</code> example demonstrates the <strong>key rule</strong>: <code>impl Trait</code> in return position can only be ONE concrete type — the compiler must know it statically. If the branch returns different types (<code>Dog</code> vs <code>Cat</code>), you must use <code>Box&lt;dyn Trait&gt;</code>.</li>
+      </ul>
+    </div>
+
+    <!-- MY EX 2: where clause real-world -->
+    <div class="code-note mine">
+      <span class="note-tag">USE CASE — MY EXAMPLE</span>
+      A realistic <strong><code>where</code> clause</strong> — a generic struct (<code>Wrapper&lt;T&gt;</code>) that pretty-prints and compares its content. Without <code>where</code>, the angle brackets would become unreadably long.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day03_my_where_clause.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">WHERE CLAUSE</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="kw">use</span> std::fmt::{Debug, Display};
+
+<span class="kw">struct</span> <span class="ty">Wrapper</span>&lt;T&gt; {
+    value: T,
+    label: <span class="ty">String</span>,
+}
+
+<span class="co">// WITHOUT where — messy with many bounds:
+// impl&lt;T: Display + Debug + PartialOrd + Clone&gt; Wrapper&lt;T&gt; { ... }</span>
+
+<span class="co">// WITH where — clean, easy to read</span>
+<span class="kw">impl</span>&lt;T&gt; <span class="ty">Wrapper</span>&lt;T&gt;
+<span class="kw">where</span>
+    T: <span class="tr">Display</span> + <span class="tr">Debug</span> + <span class="tr">PartialOrd</span> + <span class="tr">Clone</span>,
+{
+    <span class="kw">fn</span> <span class="fn">new</span>(value: T, label: &<span class="ty">str</span>) -> Self {
+        <span class="ty">Self</span> { value, label: label.to_string() }
+    }
+
+    <span class="kw">fn</span> <span class="fn">display</span>(&self) {
+        <span class="mc">println!</span>(<span class="st">"[{}] Display: {}  Debug: {:?}"</span>, self.label, self.value, self.value);
+    }
+
+    <span class="kw">fn</span> <span class="fn">is_greater_than</span>(&self, other: &T) -> <span class="ty">bool</span> {
+        self.value > *other
+    }
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> w1 = <span class="ty">Wrapper</span>::<span class="fn">new</span>(<span class="num">42_i32</span>, <span class="st">"score"</span>);
+    <span class="kw">let</span> w2 = <span class="ty">Wrapper</span>::<span class="fn">new</span>(<span class="st">"hello"</span>, <span class="st">"greeting"</span>);
+
+    w1.<span class="fn">display</span>(); <span class="co">// [score]    Display: 42    Debug: 42</span>
+    w2.<span class="fn">display</span>(); <span class="co">// [greeting] Display: hello  Debug: "hello"</span>
+
+    <span class="mc">println!</span>(<span class="st">"42 > 10? {}"</span>, w1.<span class="fn">is_greater_than</span>(&<span class="num">10</span>)); <span class="co">// true</span>
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li>The <code>where</code> clause is purely syntactic — it compiles to identical code as putting bounds in the angle brackets. The only difference is human readability.</li>
+        <li><code>Wrapper&lt;T&gt;</code> is generic over T — the struct itself has no bound. Bounds are placed on the <code>impl</code> block, meaning only the methods that <em>need</em> them require T to be <code>Display + Debug + PartialOrd + Clone</code>. You could have another <code>impl&lt;T&gt; Wrapper&lt;T&gt;</code> block with fewer bounds for other methods.</li>
+        <li>This is a common production pattern: keep the struct itself unconstrained, add bounds only to the specific <code>impl</code> blocks that need them. It maximizes the range of types that can use your struct.</li>
+      </ul>
+    </div>
+
+    <!-- MY EX 3: standard library traits -->
+    <div class="code-note mine">
+      <span class="note-tag">USE CASE — MY EXAMPLE</span>
+      The most important standard-library traits you'll implement in production code: <strong><code>Display</code>, <code>Debug</code>, <code>From</code>/<code>Into</code>, <code>Clone</code>, <code>Default</code></strong>. These unlock operator overloads, format strings, ergonomic conversions, and framework integrations.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day03_my_stdlib_traits.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">STDLIB TRAITS</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre"><span class="kw">use</span> std::fmt;
+
+<span class="mc">#[derive(Debug, Clone, Default)]</span> <span class="co">// Debug, Clone, Default — auto-derived</span>
+<span class="kw">struct</span> <span class="ty">Point</span> {
+    x: <span class="ty">f64</span>,
+    y: <span class="ty">f64</span>,
+}
+
+<span class="co">// Display — what the user sees. Needed for println!("{}", point)</span>
+<span class="kw">impl</span> fmt::<span class="tr">Display</span> <span class="kw">for</span> <span class="ty">Point</span> {
+    <span class="kw">fn</span> <span class="fn">fmt</span>(&self, f: &<span class="kw">mut</span> fmt::<span class="ty">Formatter</span>) -> fmt::<span class="ty">Result</span> {
+        <span class="mc">write!</span>(f, <span class="st">"({}, {})"</span>, self.x, self.y)
+    }
+}
+
+<span class="co">// From — enables ergonomic conversions and the .into() pattern</span>
+<span class="kw">impl</span> <span class="tr">From</span>&lt;(<span class="ty">f64</span>, <span class="ty">f64</span>)&gt; <span class="kw">for</span> <span class="ty">Point</span> {
+    <span class="kw">fn</span> <span class="fn">from</span>((x, y): (<span class="ty">f64</span>, <span class="ty">f64</span>)) -> Self {
+        <span class="ty">Self</span> { x, y }
+    }
+}
+
+<span class="co">// PartialEq — enables == operator</span>
+<span class="kw">impl</span> <span class="tr">PartialEq</span> <span class="kw">for</span> <span class="ty">Point</span> {
+    <span class="kw">fn</span> <span class="fn">eq</span>(&self, other: &Self) -> <span class="ty">bool</span> {
+        self.x == other.x && self.y == other.y
+    }
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> p1 = <span class="ty">Point</span> { x: <span class="num">1.0</span>, y: <span class="num">2.0</span> };
+    <span class="kw">let</span> p2: <span class="ty">Point</span> = (<span class="num">1.0_f64</span>, <span class="num">2.0_f64</span>).into(); <span class="co">// uses From impl</span>
+    <span class="kw">let</span> p3 = <span class="ty">Point</span>::from((<span class="num">3.0</span>, <span class="num">4.0</span>));
+    <span class="kw">let</span> p4 = <span class="ty">Point</span>::default(); <span class="co">// Point { x: 0.0, y: 0.0 }</span>
+
+    <span class="mc">println!</span>(<span class="st">"Display: {}"</span>,  p1);       <span class="co">// (1, 2)</span>
+    <span class="mc">println!</span>(<span class="st">"Debug:   {:?}"</span>, p1);       <span class="co">// Point { x: 1.0, y: 2.0 }</span>
+    <span class="mc">println!</span>(<span class="st">"p1 == p2: {}"</span>, p1 == p2);  <span class="co">// true</span>
+    <span class="mc">println!</span>(<span class="st">"p1 == p3: {}"</span>, p1 == p3);  <span class="co">// false</span>
+    <span class="mc">println!</span>(<span class="st">"default:  {}"</span>, p4);        <span class="co">// (0, 0)</span>
+
+    <span class="kw">let</span> p_clone = p3.clone(); <span class="co">// Clone — independent copy</span>
+    <span class="mc">println!</span>(<span class="st">"cloned:   {}"</span>, p_clone);   <span class="co">// (3, 4)</span>
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li><code>#[derive(Debug, Clone, Default)]</code> — the compiler auto-generates these trait implementations by inspecting each field. <code>Debug</code> prints all fields, <code>Clone</code> clones each field, <code>Default</code> calls <code>Default::default()</code> on each field. Only works if every field's type also implements those traits.</li>
+        <li><code>From&lt;(f64, f64)&gt; for Point</code> automatically gives you <code>Into&lt;Point&gt; for (f64, f64)</code> — Rust has a blanket impl: <code>impl&lt;T, U: From&lt;T&gt;&gt; Into&lt;U&gt; for T</code>. Implement <code>From</code>, get <code>Into</code> free.</li>
+        <li><code>Display</code> vs <code>Debug</code>: <code>Display</code> (<code>{}</code>) is for end users — you control the format. <code>Debug</code> (<code>{:?}</code>) is for developers — auto-generated, shows internal structure. Frameworks like <code>axum</code> often require <code>Display</code> on error types; <code>tracing</code> uses <code>Debug</code> for field logging.</li>
+        <li>Implementing <code>PartialEq</code> manually lets you customize equality — e.g. case-insensitive string comparison, floating-point epsilon checks.</li>
+      </ul>
+    </div>
+
+    <!-- MY EX 4: trait as API contract (production pattern) -->
+    <div class="code-note mine">
+      <span class="note-tag">USE CASE — MY EXAMPLE</span>
+      The most important production use: traits as <strong>API contracts / seams</strong>. Define a <code>Repository</code> trait so your business logic depends on the abstraction, not the concrete database. This makes testing trivial — swap the real DB for a mock that also implements the trait.
+    </div>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">day03_my_trait_as_contract.rs</span>
+        <div class="code-header-right">
+          <span class="code-lang">PRODUCTION PATTERN</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre"><span class="kw">use</span> std::collections::HashMap;
+
+<span class="co">// The contract — business logic depends ONLY on this trait</span>
+<span class="kw">trait</span> <span class="tr">UserRepository</span> {
+    <span class="kw">fn</span> <span class="fn">get_user</span>(&self, id: <span class="ty">u32</span>) -> Option&lt;&<span class="ty">str</span>&gt;;
+    <span class="kw">fn</span> <span class="fn">save_user</span>(&<span class="kw">mut</span> self, id: <span class="ty">u32</span>, name: &<span class="ty">str</span>);
+}
+
+<span class="co">// REAL implementation — talks to a DB (simplified)</span>
+<span class="kw">struct</span> <span class="ty">PostgresRepo</span> { conn_str: <span class="ty">String</span> }
+<span class="kw">impl</span> <span class="tr">UserRepository</span> <span class="kw">for</span> <span class="ty">PostgresRepo</span> {
+    <span class="kw">fn</span> <span class="fn">get_user</span>(&self, id: <span class="ty">u32</span>) -> Option&lt;&<span class="ty">str</span>&gt; {
+        <span class="mc">println!</span>(<span class="st">"[postgres] querying {} for id={}"</span>, self.conn_str, id);
+        <span class="kw">None</span> <span class="co">// simplified — real code sends SQL</span>
+    }
+    <span class="kw">fn</span> <span class="fn">save_user</span>(&<span class="kw">mut</span> self, id: <span class="ty">u32</span>, name: &<span class="ty">str</span>) {
+        <span class="mc">println!</span>(<span class="st">"[postgres] INSERT user id={} name={}"</span>, id, name);
+    }
+}
+
+<span class="co">// MOCK implementation — in-memory, used in tests</span>
+<span class="kw">struct</span> <span class="ty">MockRepo</span> { store: HashMap&lt;<span class="ty">u32</span>, <span class="ty">String</span>&gt; }
+<span class="kw">impl</span> <span class="tr">UserRepository</span> <span class="kw">for</span> <span class="ty">MockRepo</span> {
+    <span class="kw">fn</span> <span class="fn">get_user</span>(&self, id: <span class="ty">u32</span>) -> Option&lt;&<span class="ty">str</span>&gt; {
+        self.store.get(&id).map(|s| s.as_str())
+    }
+    <span class="kw">fn</span> <span class="fn">save_user</span>(&<span class="kw">mut</span> self, id: <span class="ty">u32</span>, name: &<span class="ty">str</span>) {
+        self.store.insert(id, name.to_string());
+    }
+}
+
+<span class="co">// Business logic — generic over ANY UserRepository impl
+// The logic is the same regardless of real DB or mock</span>
+<span class="kw">fn</span> <span class="fn">create_user</span>&lt;R: <span class="tr">UserRepository</span>&gt;(repo: &<span class="kw">mut</span> R, id: <span class="ty">u32</span>, name: &<span class="ty">str</span>) {
+    <span class="kw">if</span> repo.<span class="fn">get_user</span>(id).is_none() {
+        repo.<span class="fn">save_user</span>(id, name);
+        <span class="mc">println!</span>(<span class="st">"User {} created."</span>, name);
+    } <span class="kw">else</span> {
+        <span class="mc">println!</span>(<span class="st">"User {} already exists."</span>, id);
+    }
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="co">// In tests — use MockRepo, no DB needed</span>
+    <span class="kw">let mut</span> mock = <span class="ty">MockRepo</span> { store: HashMap::new() };
+    <span class="fn">create_user</span>(&<span class="kw">mut</span> mock, <span class="num">1</span>, <span class="st">"Mishal"</span>);  <span class="co">// User Mishal created.</span>
+    <span class="fn">create_user</span>(&<span class="kw">mut</span> mock, <span class="num">1</span>, <span class="st">"Mishal"</span>);  <span class="co">// User 1 already exists.</span>
+
+    <span class="co">// In production — use PostgresRepo, same logic</span>
+    <span class="kw">let mut</span> pg = <span class="ty">PostgresRepo</span> { conn_str: <span class="st">"postgres://localhost/mydb"</span>.into() };
+    <span class="fn">create_user</span>(&<span class="kw">mut</span> pg, <span class="num">2</span>, <span class="st">"Alice"</span>);
+}</pre>
+    </div>
+    <div class="underhood">
+      <span class="note-tag">UNDER THE HOOD</span>
+      <ul>
+        <li>This is the <strong>Dependency Inversion Principle</strong> in Rust — high-level code (<code>create_user</code>) depends on an abstraction (the trait), not a concrete implementation. This pattern appears everywhere in production Rust: HTTP handlers, background workers, CLI tools.</li>
+        <li><code>create_user&lt;R: UserRepository&gt;</code> — static dispatch. The compiler generates a version for <code>MockRepo</code> and another for <code>PostgresRepo</code>. Zero overhead at runtime.</li>
+        <li>If you need to store the repo in a struct (e.g. an axum handler state), you can use either a generic struct parameter or <code>Box&lt;dyn UserRepository&gt;</code>. The generic approach is faster; the <code>Box&lt;dyn&gt;</code> approach is more flexible (easier to store in collections, pass across threads with <code>+ Send</code>).</li>
+        <li>In async Rust, this pattern extends naturally: <code>trait UserRepository { async fn get_user(...) }</code> — but async traits need the <code>async_trait</code> crate (Day 07 topic).</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══ 04. PRODUCTION ══ -->
+  <div class="section" id="production">
+    <div class="section-label">
+      <span class="section-num">04</span>
+      <span class="section-title">Why We Use It in Production</span>
+      <span class="divider"></span>
+    </div>
+    <div class="prod-grid">
+      <div class="prod-card">
+        <div class="icon">🔌</div>
+        <h4>Dependency Injection via Traits</h4>
+        <p>Traits are Rust's seam for testability. Business logic accepts <code>impl Repository</code> — swap a real DB for a fast in-memory mock in tests. No mocking framework needed.</p>
+      </div>
+      <div class="prod-card">
+        <div class="icon">⚡</div>
+        <h4>Zero-Cost Generic Algorithms</h4>
+        <p>Standard library sorts, serializers, and math ops are all generic. Your custom algorithms get the same zero-cost treatment via monomorphization — no Java-style boxing.</p>
+      </div>
+      <div class="prod-card">
+        <div class="icon">🔒</div>
+        <h4>Plugin & Extension Systems</h4>
+        <p><code>Box&lt;dyn Trait + Send + Sync&gt;</code> powers plugin architectures — load unknown implementations at runtime (from config, reflection, or dynamic linking) through a fixed interface.</p>
+      </div>
+      <div class="prod-card">
+        <div class="icon">🧩</div>
+        <h4>serde / axum / tokio Integration</h4>
+        <p>Every framework integration in Rust works through traits: <code>Serialize</code>/<code>Deserialize</code> for serde, <code>IntoResponse</code> for axum, <code>Future</code> for tokio. Understanding traits unlocks the whole ecosystem.</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 24px; background: var(--gray-900); border: 1px solid var(--gray-800); padding: 20px 24px;">
+      <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--accent); letter-spacing:2px; margin-bottom:12px;">REAL-WORLD USAGE</div>
+      <div class="checklist">
+        <div class="check-item"><span class="chk">→</span><span><strong style="color:var(--white)">axum</strong> — every handler response type implements <code>IntoResponse</code>; extractors implement <code>FromRequest</code>. Adding a new type to your API just means impl-ing those traits.</span></div>
+        <div class="check-item"><span class="chk">→</span><span><strong style="color:var(--white)">serde</strong> — <code>#[derive(Serialize, Deserialize)]</code> auto-implements the traits via proc macros. Custom types with manual <code>impl</code> blocks can control serialization completely.</span></div>
+        <div class="check-item"><span class="chk">→</span><span><strong style="color:var(--white)">tokio</strong> — the <code>Future</code> trait is how every async task works. <code>impl Future for MyStateMachine</code> is what <code>async fn</code> desugars to under the hood.</span></div>
+        <div class="check-item"><span class="chk">→</span><span><strong style="color:var(--white)">diesel / sqlx</strong> — generic over <code>Connection</code> traits; your query code works against any supported database backend through the same trait-based interface.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 05. INTERVIEW Q&A ══ -->
+  <div class="section" id="interview">
+    <div class="section-label">
+      <span class="section-num">05</span>
+      <span class="section-title">Interview Q&amp;A — Job Ready</span>
+      <span class="divider"></span>
+    </div>
+    <div class="qa-list">
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q1</span>
+          <span class="q-text">What is the difference between <code>impl Trait</code> and <code>dyn Trait</code>?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          <code>impl Trait</code> is <strong>static dispatch</strong> — the compiler resolves the exact type at compile time and monomorphizes the function, generating a separate version per concrete type. Zero runtime overhead, but return type must be a single concrete type.<br/><br/>
+          <code>dyn Trait</code> is <strong>dynamic dispatch</strong> — the concrete type is resolved at runtime through a vtable (a table of function pointers). One function body handles all types. Slight overhead per call (one extra pointer indirection), but enables heterogeneous collections and runtime-determined types.<br/><br/>
+          Rule of thumb: prefer <code>impl Trait</code> for performance; use <code>dyn Trait</code> when you need to store mixed types together or the concrete type is unknown until runtime.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q2</span>
+          <span class="q-text">What is monomorphization, and what is its trade-off?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          Monomorphization is the compiler process of generating a <strong>separate, concrete copy of generic code</strong> for each type it's used with. <code>fn foo&lt;T: Display&gt;(x: T)</code> called with <code>i32</code> and <code>String</code> produces two distinct functions in the binary.<br/><br/>
+          <strong>Advantage:</strong> zero runtime abstraction overhead — as fast as hand-written type-specific code; the optimizer can inline and specialize further.<br/><br/>
+          <strong>Trade-off:</strong> binary size bloat — if a generic function is used with many different types, the binary contains many copies. <code>dyn Trait</code> avoids this with one shared function body.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q3</span>
+          <span class="q-text">What does "object safe" mean, and why does it matter for <code>dyn Trait</code>?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          A trait is <strong>object-safe</strong> if it can be used as a trait object (<code>dyn Trait</code>). The vtable for a trait object must have a fixed layout, so the compiler requires that:<br/><br/>
+          1. No method returns <code>Self</code> by value (size of Self not known).<br/>
+          2. No method has generic type parameters (can't monomorphize per call through a vtable).<br/>
+          3. No associated functions without <code>&amp;self</code> (can't dispatch through a pointer).<br/><br/>
+          If a trait violates these, using <code>Box&lt;dyn MyTrait&gt;</code> gives a compile error. The fix is usually to remove the generic method from the trait and use a separate generic free function instead.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q4</span>
+          <span class="q-text">When would you use a <code>where</code> clause instead of inline trait bounds?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          <code>where</code> clauses are identical in semantics — purely a readability choice. Use them when:<br/><br/>
+          1. You have <strong>multiple bounds on multiple type parameters</strong> — the angle brackets become unreadably long.<br/>
+          2. You need to bound <strong>associated types</strong>: <code>where T::Item: Send + Sync</code>.<br/>
+          3. You want to keep the function signature clean — put the bounds separately.<br/><br/>
+          A rule of thumb: one or two simple bounds → inline. Three or more, or any associated type bounds → <code>where</code>.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q5</span>
+          <span class="q-text">What are default trait implementations, and how do they help?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          A trait can provide a default implementation for any of its methods — types that implement the trait can <strong>override</strong> it or just use the default for free. This lets you add behaviour to new types without requiring them to implement every method from scratch.<br/><br/>
+          Real example: the <code>Iterator</code> trait has only one required method (<code>next</code>) — all 80+ other methods (<code>map</code>, <code>filter</code>, <code>collect</code>, etc.) are default implementations built on top of <code>next</code>. Implement <code>next</code> for your custom type and you instantly get the entire iterator API for free.
+        </div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q" onclick="toggle(this)">
+          <span class="q-label">Q6</span>
+          <span class="q-text">Can you implement a trait from another crate for a type from another crate?</span>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-a">
+          No — this is the <strong>orphan rule</strong> (coherence rule). You can only implement a trait if either the <strong>trait</strong> or the <strong>type</strong> is defined in your crate. You can't implement <code>Display</code> (from std) for <code>Vec&lt;i32&gt;</code> (from std) in your crate — both are foreign.<br/><br/>
+          The workaround is the <strong>newtype pattern</strong>: wrap the foreign type in a local struct (<code>struct MyVec(Vec&lt;i32&gt;)</code>), then implement the foreign trait on your local newtype. The newtype is yours, so the orphan rule is satisfied.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ 06. ADVANCED ══ -->
+  <div class="section" id="advanced">
+    <div class="section-label">
+      <span class="section-num">06</span>
+      <span class="section-title">Advanced Usage — Where Traits Get Deep</span>
+      <span class="divider"></span>
+    </div>
+    <table class="adv-table">
+      <thead>
+        <tr>
+          <th>Pattern</th>
+          <th>What It Solves</th>
+          <th>Used In</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Associated Types<br/><code>type Item</code></td>
+          <td>Bind an output type to a trait impl — cleaner than a type parameter when there's only one natural "output" type (e.g. <code>Iterator::Item</code>, <code>Add::Output</code>).</td>
+          <td>Iterator, Add/Sub operators, async streams</td>
+        </tr>
+        <tr>
+          <td>Blanket Impls<br/><code>impl&lt;T: A&gt; B for T</code></td>
+          <td>Implement a trait for ALL types satisfying some bound — the standard library does this for <code>Into</code> via <code>From</code>, and for <code>ToString</code> via <code>Display</code>.</td>
+          <td>std conversions, derive-less trait propagation</td>
+        </tr>
+        <tr>
+          <td>Newtype Pattern</td>
+          <td>Wrap a foreign type in a local struct to implement a foreign trait (orphan rule bypass). Also used to add invariants, restrict API surface, or add semantic meaning to primitives.</td>
+          <td>Error wrapping, unit types (Metres(f64)), API design</td>
+        </tr>
+        <tr>
+          <td>Trait Specialization<br/>(nightly)</td>
+          <td>Provide a more specific impl that overrides the blanket impl when a type satisfies additional constraints — not yet stable, but used in std internals.</td>
+          <td>std string conversions, performance-optimized fast paths</td>
+        </tr>
+        <tr>
+          <td>HRTB on Trait Bounds<br/><code>F: for&lt;'a&gt; Fn(&amp;'a T)</code></td>
+          <td>Require a trait be implemented for all possible lifetimes — necessary when a callback is stored and called multiple times with different-lifetime inputs.</td>
+          <td>Visitor patterns, iterator adapters, callback APIs</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="code-wrap" style="margin-top:24px;">
+      <div class="code-header">
+        <span class="code-filename">day03_advanced.rs — Associated Types + Blanket Impl</span>
+        <div class="code-header-right">
+          <span class="code-lang">ADVANCED</span>
+          <button class="copy-btn" onclick="copyCode(this)">⧉ COPY</button>
+        </div>
+      </div>
+      <pre><span class="co">// Associated type — cleaner than a type parameter when there's one natural output</span>
+<span class="kw">trait</span> <span class="tr">Transformer</span> {
+    <span class="kw">type</span> Output;
+    <span class="kw">fn</span> <span class="fn">transform</span>(&self) -> Self::<span class="ty">Output</span>;
+}
+
+<span class="kw">struct</span> <span class="ty">Doubler</span>(i32);
+<span class="kw">impl</span> <span class="tr">Transformer</span> <span class="kw">for</span> <span class="ty">Doubler</span> {
+    <span class="kw">type</span> Output = i32;
+    <span class="kw">fn</span> <span class="fn">transform</span>(&self) -> <span class="ty">i32</span> { self.<span class="num">0</span> * <span class="num">2</span> }
+}
+
+<span class="kw">struct</span> <span class="ty">Stringifier</span>(i32);
+<span class="kw">impl</span> <span class="tr">Transformer</span> <span class="kw">for</span> <span class="ty">Stringifier</span> {
+    <span class="kw">type</span> Output = String;
+    <span class="kw">fn</span> <span class="fn">transform</span>(&self) -> <span class="ty">String</span> { self.<span class="num">0</span>.to_string() }
+}
+
+<span class="co">// Blanket impl — auto-implements Describe for ANYTHING that is Display</span>
+<span class="kw">use</span> std::fmt::Display;
+<span class="kw">trait</span> <span class="tr">Describe</span> { <span class="kw">fn</span> <span class="fn">describe</span>(&self) -> <span class="ty">String</span>; }
+
+<span class="kw">impl</span>&lt;T: <span class="tr">Display</span>&gt; <span class="tr">Describe</span> <span class="kw">for</span> T {
+    <span class="kw">fn</span> <span class="fn">describe</span>(&self) -> <span class="ty">String</span> {
+        <span class="mc">format!</span>(<span class="st">"I am: {}"</span>, self)
+    }
+}
+
+<span class="kw">fn</span> <span class="fn">main</span>() {
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, <span class="ty">Doubler</span>(<span class="num">5</span>).<span class="fn">transform</span>());      <span class="co">// 10 (i32)</span>
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, <span class="ty">Stringifier</span>(<span class="num">5</span>).<span class="fn">transform</span>());  <span class="co">// "5" (String)</span>
+
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, <span class="num">42_i32</span>.<span class="fn">describe</span>());    <span class="co">// "I am: 42"  — blanket impl!</span>
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, <span class="st">"hello"</span>.<span class="fn">describe</span>());    <span class="co">// "I am: hello"</span>
+    <span class="mc">println!</span>(<span class="st">"{}"</span>, <span class="num">3.14_f64</span>.<span class="fn">describe</span>());  <span class="co">// "I am: 3.14"</span>
+}</pre>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ── FOOTER ── -->
+<div class="footer">
+  <div>
+    <div>// phase-01 &nbsp;·&nbsp; day-03 of 15 &nbsp;·&nbsp; traits &amp; generics ✓</div>
+    <div style="margin-top:6px;">built by mishal · entry-level → mid-level rust journey</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end;">
+    <div class="footer-links">
+      <a class="footer-link" href="https://github.com/mishalturkane/why_rust" target="_blank" rel="noopener">
+        <span>⌥</span> github.com/mishalturkane/why_rust
+      </a>
+      <a class="footer-link" href="https://x.com/mishaldotrwa" target="_blank" rel="noopener">
+        <span>✕</span> x.com/mishaldotrwa
+      </a>
+    </div>
+    <a class="footer-next" href="/day04">day-04 → error handling</a>
+  </div>
+</div>
+
+<script>
+  function toggle(el) {
+    el.parentElement.classList.toggle('open');
+  }
+  function copyCode(btn) {
+    const pre = btn.closest('.code-wrap').querySelector('pre');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✓ COPIED';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 1500);
+    });
+  }
+</script>
+</body>
+</html>
